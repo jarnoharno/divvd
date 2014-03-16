@@ -1,14 +1,21 @@
-\documentclass[a4paper,parskip=half]{scrartcl}
+\documentclass[a4paper]{scrartcl}
 \usepackage[finnish]{babel}
 \usepackage[utf8]{inputenc}
-\usepackage{verbatim}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
 \usepackage[numbers]{natbib}
 \usepackage{hyperref}
+\usepackage{tikz-uml}
+\usepackage{enumitem}
+\usepackage{calc}
+\setlist[description]{font={\rmfamily}}
+\addtokomafont{disposition}{\rmfamily}
 
-\subject{Dokumentaatio}
+\subject{Aineopintojen harjoitustyö: Tietokantasovellus}
 \author{Jarno Leppänen}
-\title{Divvd -- Kustannusten jako usealla valuutoilla}
-\date{16.3.2013}
+\title{Divvd -- Useilla valuutoilla toimiva kustannusten jako}
+\subtitle{Dokumentaatio}
+\date{16.3.2014}
 
 \begin{document}
 
@@ -16,22 +23,107 @@
 
 \section{Johdanto}
 
-Kustannusten jako on tavallinen ongelma, kun käydään ystävien kanssa
-ravintolassa tai huolehditaan yhteisestä taloudesta kämppäkaverien tai
-puolison kanssa. Erityisen hankalaksi tehtävä osoittautuu, jos käytössä on
-useita valuuttoja esimerkiksi pitkän reppureissun aikana syntyvien menojen
-takia.
+Kustannusten jako on tavallinen ongelma esimerkiksi ravintolaillallisella tai
+taloudenpidossa puolison tai kämppäkavereiden kanssa. Erityisen hankalaksi
+tehtävä osoittautuu, jos jaettavissa kustannuksissa on käytetty on useita eri
+valuuttoja. Tällainen tilanne voi syntyä esimerkiksi pitkän reppumatkan aikana.
 
-Työssä toteutetaan kustannusten jakoon tarkoitettu kirjanpitojärjestelmä,
-jossa tilitapahtumia voi kirjata eri valuutoilla. Järjestelmä pitää kirjaa
-tilitapahtumista ja laskee kustannuksiin osallistuneiden henkilöiden
-kokonaissaldot. Järjestelmä osaa myös ehdottaa tapoja velkojen tehokkaaseen
-takaisinmaksuun.
+Työssä toteutetaan kustannusten jakoon tarkoitettu kirjanpitojärjestelmä, jossa
+kirjauksia voi tehdä eri valuutoilla. Käyttäjä voi rekisteröitymisen ja
+kirjautumisen jälkeen luoda \textit{tilikirjoja}, jotka ovat kokoelmia
+käyttäjän syöttämistä \textit{tilitapahtumista}. Tilitapahtumaan kirjataan
+tapahtuman osapuolet sekä näiden tulot ja menot tapahtumaan liittyen.
+Järjestelmä laskee tilikirjassa olevien osapuolten kokonaissaldot haluttuun
+valuuttaan muunnettuna ja osaa lisäksi ehdottaa tapoja velkojen
+takaisinmaksuun. Takaisinmaksujärjestely voidaan ratkaista esimerkiksi
+minimoimalla järjestelyssä tapahtuvien transaktioiden
+lukumäärä\cite{verhoeff2004settling}.
+
+\subsection{Toimintaympäristö}
+
+Ohjelma toteutetaan web-sovelluksena heroku-PaaS-palvelun päälle.
+Sovelluskehyksenä käytetään herokun tukemaa node.js-kehystä. Ohjelmointikielenä
+on Javascript sekä selain-, että palvelinympäristössä.
+
+Tietokantana toimii herokun tarjoama PostgreSQL. Tietokantaa käsitellään
+suoraan Postgre\-SQL:n laajennetun SQL-kielen avulla. Toteutuksessa tullaan
+hyödyntämään SQL-standardiin kuulumattomia trigger- ja view-mekanismeja, joten
+tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
 
 \section{Yleiskuva järjestelmästä}
 
-\cite{verhoeff2004settling}
-\section{Käyttötapaukset}
+\subsection{Käyttötapauskaavio}
+
+\newcommand{\coldist}{5}
+\begin{tikzpicture}
+\begin{umlsystem}[x=5,fill=yellow!20]{Divvd-järjestelmä}
+  \umlusecase[name=register]{rekisteröityminen}
+  \umlusecase[y=-2,name=login]{kirjautuminen}
+  \umlusecase[y=-4,name=ledger,width=1.5cm]{tilikirjojen käsittely}
+  \umlusecase[y=-6,name=transaction,width=2.2cm]{tilitapahtumien käsittely}
+  \umlusecase[y=-10,name=totals,width=2cm]{loppusaldojen tulostus}
+  \umlusecase[y=-12,name=settle,width=2.9cm]{maksusuunnitelman tulostus}
+  \umlusecase[y=-8,name=currency,width=2.4cm]{valuuttakurssien muokkaus}
+  \umlusecase[y=-4,x=\coldist,name=add-ledger,width=1.5cm]{tilikirjan lisäys}
+  \umlusecase[y=-2,x=\coldist,name=delete-ledger,width=1.5cm]{tilikirjan poisto}
+  \umlusecase[y=-6,x=\coldist,name=add-transaction,width=2.2cm]{tilitapahtuman
+    lisäys}
+  \umlusecase[y=-10,x=\coldist,name=delete-transaction,width=2.2cm]{tilitapahtuman
+    poisto}
+  \umlusecase[y=-8,x=\coldist,name=edit-transaction,width=2.2cm]{tilitapahtuman
+    muokkaus}
+\end{umlsystem}
+\umlactor[y=-6,x=-1,name=user]{käyttäjä}
+\umlassoc{user}{register}
+\umlassoc{user}{login}
+\umlassoc{user}{ledger}
+\umlassoc{user}{transaction}
+\umlassoc{user}{totals}
+\umlassoc{user}{settle}
+\umlassoc{user}{currency}
+\umlinherit{add-ledger}{ledger}
+\umlinherit{delete-ledger}{ledger}
+\umlinherit{add-transaction}{transaction}
+\umlinherit{delete-transaction}{transaction}
+\umlinherit{edit-transaction}{transaction}
+\umlinclude{ledger}{login}
+\umlinclude{transaction}{add-ledger}
+\end{tikzpicture}
+
+\subsection{Käyttäjäryhmät}
+
+\begin{description}
+  \item[käyttäjä] järjestelmään rekisteröitynyt käyttäjä
+\end{description}
+
+\subsection{Käyttötapauskuvaukset}
+
+\begin{description}[style=nextline]
+  \item[tilikirjojen käsittely]{
+      Kirjautunut käyttäjä voi lisätä ja poistaa tilikirjoja. Kun tilikirjan
+      poistaa, kaikki siihen liittyvät tilitapahtumat, osapuolet ja valuutat
+      poistuvat samalla.
+    }
+  \item[tilitapahtumien käsittely]{
+      Kirjautunut käyttäjä voi lisätä, poistaa ja muokata tietyn tilikirjan
+      tilitapahtumia. Tilitapahtumaan liittyy osapuolia sekä näiden
+      tilitapatumaan liittyviä menoja ja tuloja. Menoja ja tuloja voidaan
+      kirjata eri valuutoilla ja tilitapahtumien kokonaissummaa voidaan
+      tarkastella haluttuun valuuttaan muunnettuna.
+    }
+  \item[valuuttakurssien muokkaus]{
+      Kirjautunut käyttäjä voi muokata tilikirjassa olevien valuuttojen
+      kursseja.
+    }
+  \item[loppusaldojen tulostus]{
+      Kirjautunut käyttäjä voi tulostaa tilikirjan loppusaldot kaikki
+      osapuolten osalta.
+    }
+  \item[maksusuunnitelman tulostus]{
+      Kirjautunut käyttäjä pyytää järjestelmältä ehdotusta velkojen
+      takaisinmaksujärjestelystä.
+    }
+  \end{description}
 
 \bibliographystyle{plainnat}
 \bibliography{dokumentaatio}
