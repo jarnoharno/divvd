@@ -2,15 +2,14 @@
   "name": "divvd",
   "version": "0.0.1",
   "description": "Divide expenses across borders.",
-  "main": "web.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jarno Leppänen",
   "license": "MIT",
   "dependencies": {
-    "express": "^3.4.8",
-    "logfmt": "^1.0.0-pre"
+    "express": "3.4.8"
   },
   "engines": {
     "node": "0.10.x"
