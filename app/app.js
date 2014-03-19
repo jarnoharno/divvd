@@ -4,10 +4,11 @@
  */
 
 var express = require('express');
-var db = require('./db.js');
+var db = require('./db');
 var user = require('./controllers/user');
 var http = require('http');
 var path = require('path');
+var auth = require('./auth');
 
 var app = express();
 
@@ -22,6 +23,8 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
 app.use(express.session());
+app.use(auth);
+
 app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 

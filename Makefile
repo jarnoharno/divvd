@@ -54,6 +54,12 @@ $(DB_TARGETS): %: $(BUILD_DB_PREFIX)%
 ifeq ($(MAKELEVEL),0)
 $(DB_FULL_TARGETS): %: $(BUILD_DB)/PG_VERSION
 	pg_ctl -w -D $(BUILD_DB) start && $(MAKE) $@; pg_ctl -D $(BUILD_DB) stop
+$(BUILD_DB_PREFIX)create-db: | $(BUILD_DB_PREFIX)create-user
+$(BUILD_DB_PREFIX)grant-all: | $(BUILD_DB_PREFIX)create-db
+$(BUILD_DB_PREFIX)init-schema: db/drop-schema.sql db/init-schema.sql | \
+	$(BUILD_DB_PREFIX)grant-all
+$(BUILD_DB_PREFIX)init-data: | $(BUILD_DB_PREFIX)grant-all
+$(BUILD_DB_PREFIX)drop-schema: | $(BUILD_DB_PREFIX)grant-all
 else
 $(BUILD_DB_PREFIX)create-user:
 	psql postgres postgres -c "create user divvd password 'divvd';"
@@ -64,10 +70,12 @@ $(BUILD_DB_PREFIX)create-db: | $(BUILD_DB_PREFIX)create-user
 $(BUILD_DB_PREFIX)grant-all: | $(BUILD_DB_PREFIX)create-db
 	psql postgres postgres -c "grant all on database divvd to divvd;"
 	touch $@
-$(BUILD_DB_PREFIX)init-schema: | $(BUILD_DB_PREFIX)grant-all
+$(BUILD_DB_PREFIX)init-schema: db/drop-schema.sql db/init-schema.sql | \
+	$(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	psql divvd divvd -f db/init-schema.sql
 	touch $@
+# alternative database targets
 $(BUILD_DB_PREFIX)init-data: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	psql divvd divvd -f db/init-schema.sql
