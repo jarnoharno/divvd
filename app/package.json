@@ -12,7 +12,7 @@
     "express": "3.4.8",
     "pg": "2.11.1",
     "basic-auth": "0.0.1",
-    "buffertools": "^2.0.1"
+    "buffertools": "2.0.1"
   },
   "engines": {
     "node": "0.10.x"

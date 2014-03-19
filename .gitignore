@@ -1,2 +1,3 @@
-build
-app/public/doc
+build/
+app/public/doc/
+node_modules/

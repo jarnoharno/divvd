@@ -25,7 +25,6 @@ function authenticate(user, req, res, next) {
       res.json(500, { message: 'server error' });
     } else if (result.rowCount > 0) {
       var userdata = result.rows[0];
-      console.log('calculating hash...');
       crypto.pbkdf2(user.pass, userdata.salt, 10000, 32, function(err, pass) {
         if (err) {
           console.error('failed to calculate hash');

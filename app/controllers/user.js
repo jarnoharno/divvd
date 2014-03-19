@@ -1,5 +1,5 @@
 var crypto = require('crypto');
-var db = require('../db.js');
+var db = require('../lib/db');
 
 // req.session.user // user logged in
 // req.params.user // requested user

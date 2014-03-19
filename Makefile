@@ -1,5 +1,18 @@
+PORT := 3000
+SSL_PORT := 4000
+HEROKU_APP := divvd
+HEROKU_DB := COBALT
+#HEROKU_DB = $(shell heroku pg --app divvd | awk '/DATABASE_URL/ { print $$2 }')
+LOCALHOST := localhost
+
 BUILD := build
+BUILD_CERT := $(BUILD)/cert
+KEY_PEM := $(BUILD_CERT)/key.pem
+CERT_PEM := $(BUILD_CERT)/cert.pem
 BUILD_DOC := $(BUILD)/doc
+LOCAL_DB_URL := postgres://divvd:divvd@localhost/divvd
+BUILD_DB := $(BUILD)/db
+BUILD_DB_PREFIX := $(BUILD_DB)/divvd-
 
 # documentation targets
 
@@ -25,9 +38,6 @@ doc-cont:
 
 # clean and init heroku database
 
-HEROKU_DB := COBALT
-#HEROKU_DB = $(shell heroku pg --app divvd | awk '/DATABASE_URL/ { print $$2 }')
-
 heroku-init-schema:
 	heroku pg:reset $(HEROKU_DB) --app divvd --confirm divvd
 	heroku pg:psql --app divvd < db/init-schema.sql
@@ -43,8 +53,6 @@ heroku-init-data:
 DB_ROOT_TARGETS := create-user create-db grant-all drop-schema
 DB_USER_TARGETS := init-schema init-data
 
-BUILD_DB := $(BUILD)/db
-BUILD_DB_PREFIX := $(BUILD_DB)/divvd-
 DB_TARGETS := $(DB_ROOT_TARGETS) $(DB_USER_TARGETS)
 DB_FULL_TARGETS := $(foreach target,$(DB_TARGETS),$(BUILD_DB_PREFIX)$(target))
 
@@ -101,19 +109,40 @@ start-db:
 stop-db:
 	pg_ctl -D $(BUILD_DB) stop
 
+# create local certificate
+
+PEM := $(KEY_PEM) $(CERT_PEM)
+
+$(BUILD_CERT):
+	mkdir -p $(BUILD_CERT)
+
+pem: $(PEM)
+$(PEM): | $(BUILD_CERT)
+	openssl req -newkey rsa:2048 -new -nodes -x509 \
+		-keyout $(KEY_PEM) -out $(CERT_PEM) \
+		-subj '/CN=$(LOCALHOST)/O=Divvd LTD./C=FI'
+
 # run local app
 
-debug: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema
-	pg_ctl start -w -D $(BUILD_DB) && \
-		cd app; \
-		DATABASE_URL=postgres://divvd:divvd@localhost/divvd node-debug app.js; \
-		cd ..; \
-		pg_ctl stop -D $(BUILD_DB)
+debug: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
+	pg_ctl start -w -D $(BUILD_DB) && (\
+	export DATABASE_URL=$(LOCAL_DB_URL); \
+	export PORT=$(PORT); \
+	export SSL_PORT=$(SSL_PORT); \
+	node proxy/proxy.js $(KEY_PEM) $(CERT_PEM) & ; \
+	bash -c 'cd app && node-debug app.js'; \
+	kill $$!; \
+	pg_ctl stop -D $(BUILD_DB) )
 
-run: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema
-	pg_ctl start -w -D $(BUILD_DB) && \
-		DATABASE_URL=postgres://divvd:divvd@localhost/divvd node app/app.js; \
-		pg_ctl stop -D $(BUILD_DB)
+run: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
+	pg_ctl start -w -D $(BUILD_DB) && (\
+	export DATABASE_URL=$(LOCAL_DB_URL); \
+	export PORT=$(PORT); \
+	export SSL_PORT=$(SSL_PORT); \
+	(node proxy/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
+	node app/app.js; \
+	kill $$!; \
+	pg_ctl stop -D $(BUILD_DB) )
 
 # clean everything
 
