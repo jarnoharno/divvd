@@ -129,7 +129,7 @@ debug: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \
 	export SSL_PORT=$(SSL_PORT); \
-	node proxy/proxy.js $(KEY_PEM) $(CERT_PEM) & ; \
+	node local/proxy.js $(KEY_PEM) $(CERT_PEM) & ; \
 	bash -c 'cd app && node-debug app.js'; \
 	kill $$!; \
 	pg_ctl stop -D $(BUILD_DB) )
@@ -139,7 +139,7 @@ run: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \
 	export SSL_PORT=$(SSL_PORT); \
-	(node proxy/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
+	(node local/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
 	node app/app.js; \
 	kill $$!; \
 	pg_ctl stop -D $(BUILD_DB) )

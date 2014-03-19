@@ -18,7 +18,7 @@ module.exports = function(req, res, next) {
 
 function authenticate(user, req, res, next) {
   db.query(
-      'select username, user_id, pass, salt from userdata where username = $1;',
+      'select username, role, user_id, pass, salt from userdata where username = $1;',
       [user.name], function(err, result) {
     if (err) {
       console.error('failed to load userdata');
@@ -34,6 +34,7 @@ function authenticate(user, req, res, next) {
             // save session
             req.session.user = {
               username: userdata.username,
+              role: userdata.role,
               user_id: userdata.user_id
             };
           } else {

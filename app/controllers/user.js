@@ -7,8 +7,9 @@ var db = require('../lib/db');
 
 exports.user = function(req, res) {
   if (req.session.user) {
-    if (req.params.user &&
-        req.session.user.user_id == req.params.user.user_id) {
+    if (req.params.user && (
+          req.session.user.user_id === req.params.user.user_id ||
+          req.session.user.role === 'admin')) {
       res.json(req.params.user);
     } else {
       // User is not found or current user is unauthorized.
@@ -26,7 +27,7 @@ exports.user = function(req, res) {
 exports.param = {};
 
 exports.param.user = function(req, res, next, id) {
-  db.query('select username, user_id from userdata where username = $1;',
+  db.query('select username, role, user_id from userdata where username = $1;',
       [id], function(err, result) {
     if (err) {
       console.error('failed to load userdata');
