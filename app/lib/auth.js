@@ -6,9 +6,12 @@ var db = require('./db');
 // requires session middleware to be present
 
 module.exports = function(req, res, next) {
+  console.log('no user');
   if (!req.session.user) {
     var user = auth(req);
+    console.log('auth');
     if (user) {
+      console.log('got params')
       authenticate(user, req, res, next);
       return;
     }
@@ -17,6 +20,7 @@ module.exports = function(req, res, next) {
 }
 
 function authenticate(user, req, res, next) {
+  console.log('querying');
   db.query(
       'select username, role, user_id, pass, salt from userdata where username = $1;',
       [user.name], function(err, result) {
@@ -24,13 +28,15 @@ function authenticate(user, req, res, next) {
       console.error('failed to load userdata');
       res.json(500, { message: 'server error' });
     } else if (result.rowCount > 0) {
+      console.log('got result');
       var userdata = result.rows[0];
       crypto.pbkdf2(user.pass, userdata.salt, 10000, 32, function(err, pass) {
         if (err) {
           console.error('failed to calculate hash');
           res.json(500, { message: 'server error' });
         } else {
-          if (buffertools.equals(pass,userdata.pass)) {
+          console.log('got result', pass.toString('hex'), userdata.pass.toString('hex'));
+          if (buffertools.equals(pass, userdata.pass)) {
             // save session
             req.session.user = {
               username: userdata.username,
@@ -44,6 +50,7 @@ function authenticate(user, req, res, next) {
         }
       });
     } else {
+      console.log(user.name, 'not found!');
       // user not found
       next();
     }

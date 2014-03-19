@@ -9,7 +9,7 @@ exports.user = function(req, res) {
   if (req.session.user) {
     if (req.params.user && (
           req.session.user.user_id === req.params.user.user_id ||
-          req.session.user.role === 'admin')) {
+          req.session.user.role === 'debug')) {
       res.json(req.params.user);
     } else {
       // User is not found or current user is unauthorized.
