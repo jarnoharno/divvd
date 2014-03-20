@@ -16,9 +16,9 @@ BUILD_DB_PREFIX := $(BUILD_DB)/divvd-
 
 # documentation targets
 
-app/public/doc/dokumentaatio.pdf: $(BUILD_DOC)/dokumentaatio.pdf | \
-	app/public/doc
-	cp $(BUILD_DOC)/dokumentaatio.pdf app/public/doc/.
+app/public/nonsecure/doc/dokumentaatio.pdf: $(BUILD_DOC)/dokumentaatio.pdf | \
+	app/public/nonsecure/doc
+	cp $(BUILD_DOC)/dokumentaatio.pdf app/public/nonsecure/doc/.
 
 $(BUILD_DOC)/dokumentaatio.pdf: doc/dokumentaatio.tex doc/dokumentaatio.bib | \
 	$(BUILD_DOC)
@@ -27,8 +27,8 @@ $(BUILD_DOC)/dokumentaatio.pdf: doc/dokumentaatio.tex doc/dokumentaatio.bib | \
 build/doc:
 	mkdir -p $(BUILD_DOC)
 
-app/public/doc:
-	mkdir app/public/doc
+app/public/nonsecure/doc:
+	mkdir app/public/nonsecure/doc
 
 # edit documentation in continuous mode
 
@@ -124,7 +124,7 @@ $(PEM): | $(BUILD_CERT)
 
 # run local app
 
-debug: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
+debug: app/public/nonsecure/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
 	pg_ctl start -w -D $(BUILD_DB) && (\
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \
@@ -134,7 +134,7 @@ debug: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
 	kill $$!; \
 	pg_ctl stop -D $(BUILD_DB) )
 
-run: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
+run: app/public/nonsecure/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
 	pg_ctl start -w -D $(BUILD_DB) && (\
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \
@@ -148,4 +148,4 @@ run: app/public/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
 
 clean:
 	rm -r $(BUILD) 2> /dev/null; true
-	rm app/public/doc/dokumentaatio.pdf 2> /dev/null; true
+	rm app/public/nonsecure/doc/dokumentaatio.pdf 2> /dev/null; true
