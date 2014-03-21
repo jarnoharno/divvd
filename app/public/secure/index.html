@@ -16,8 +16,9 @@
 
 <body>
 
-  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container" ng-controller="CollapseCtrl">
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation"
+    ng-controller="collapse" ng-click="collapse(false)">
+    <div class="container" ng-controller="navbar">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle"
           ng-click="collapse(!isCollapsed)">
@@ -30,9 +31,11 @@
       </div>
       <div class="collapse navbar-collapse" collapse="isCollapsed">
         <ul class="nav navbar-nav">
-          <li class="active"><a href="/">Home</a></li>
-          <li><a href="/view1" ng-click="collapse(true)">view1</a></li>
-          <li><a href="/view2" ng-click="collapse(true)">view2</a></li>
+          <li ng-repeat="route in routes"
+            ng-class="{active: active(route.path)}">
+            <a ng-href="{{route.path}}" ng-click="collapse(true)"
+              ng-bind="route.name"></a>
+          </li>
         </ul>
       </div><!--/.nav-collapse -->
     </div>

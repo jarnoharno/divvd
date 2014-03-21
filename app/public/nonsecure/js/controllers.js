@@ -9,7 +9,7 @@ controller('MyCtrl1', [function() {
 controller('MyCtrl2', [function() {
 
 }]).
-controller('CollapseCtrl', ['$scope', '$document',
+controller('collapse', ['$scope', '$document',
     function($scope, $document) {
   $scope.isCollapsed = true;
   // ClickStatus indicates whether menu should be collapsed.
@@ -17,7 +17,9 @@ controller('CollapseCtrl', ['$scope', '$document',
   // (null), menu will be collapsed.
   $scope.clickStatus = null;
   $scope.collapse = function(arg) {
-    $scope.clickStatus = arg;
+    if ($scope.clickStatus === null) {
+      $scope.clickStatus = arg;
+    }
   };
   $document.bind('click', function() {
     if ($scope.clickStatus === null) {
@@ -28,4 +30,14 @@ controller('CollapseCtrl', ['$scope', '$document',
     $scope.clickStatus = null;
     $scope.$digest();
   });
+}]).
+controller('navbar', ['$scope', '$location', function($scope, $location) {
+  $scope.routes = [
+    { path: '/', name: 'Home' },
+    { path: '/view1', name: 'view1' },
+    { path: '/view2', name: 'view2' }
+  ];
+  $scope.active = function(path) {
+    return $location.path() === path;
+  };
 }]);
