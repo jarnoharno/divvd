@@ -124,7 +124,7 @@ $(PEM): | $(BUILD_CERT)
 
 # run local app
 
-debug: app/public/nonsecure/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
+debug: $(BUILD_DB_PREFIX)init-schema $(PEM)
 	pg_ctl start -w -D $(BUILD_DB) && (\
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \
@@ -134,7 +134,7 @@ debug: app/public/nonsecure/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema 
 	kill $$!; \
 	pg_ctl stop -D $(BUILD_DB) )
 
-run: app/public/nonsecure/doc/dokumentaatio.pdf $(BUILD_DB_PREFIX)init-schema $(PEM)
+run: $(BUILD_DB_PREFIX)init-schema $(PEM)
 	pg_ctl start -w -D $(BUILD_DB) && (\
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \

@@ -1,5 +1,6 @@
 var crypto = require('crypto');
 var db = require('../lib/db');
+var common = require('./common');
 
 // req.session.user // user logged in
 // req.params.user // requested user
@@ -17,10 +18,7 @@ exports.user = function(req, res) {
       res.json(404, { message: 'user not found' });
     }
   } else {
-    // user is not authenticated, require basic auth
-    res.statusCode = 401;
-    res.setHeader('WWW-Authenticate', 'Basic realm="Authorization Required"');
-    res.json({ message: "unauthorized" });
+    common.requireAuth(req, res);
   }
 }
 

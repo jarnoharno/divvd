@@ -1,8 +1,9 @@
-<div ng-switch on="role">
-  <div ng-switch-when="user">
-    <ng-include src="'/partials/user.html'">
+<p>Hello {{user.username}}:{{user.role}}.</p>
+<div ng-switch on="user.role">
+  <div ng-switch-when="guest">
+    <ng-include src="'/partials/register.html'">
   </div>
   <div ng-switch-default>
-    <ng-include src="'/partials/register.html'">
+    <ng-include src="'/partials/user.html'">
   </div>
 </div>

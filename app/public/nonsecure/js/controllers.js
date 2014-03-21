@@ -4,8 +4,7 @@
 
 angular.module('divvd.controllers', []).
 controller('front', ['$scope', 'auth', function($scope, auth) {
-  $scope.role = auth.role;
-  $scope.username = auth.username;
+  $scope.user = auth.user;
 }]).
 controller('login', [function() {
 }]).
@@ -31,12 +30,19 @@ controller('collapse', ['$scope', '$document',
     $scope.$digest();
   });
 }]).
-controller('navbar', ['$scope', '$location', function($scope, $location) {
-  $scope.routes = [
-    { path: '/', name: 'Home' },
-    { path: '/view1', name: 'view1' },
-    { path: '/view2', name: 'view2' }
-  ];
+controller('navbar', ['$scope', '$location', 'auth',
+    function($scope, $location, auth) {
+  $scope.user = auth.user;
+  if ($scope.user === 'user') {
+    $scope.routes = [
+      { path: '/', name: 'Home' }
+    ];
+  } else {
+    $scope.routes = [
+      { path: '/register', name: 'Register' },
+      { path: '/login', name: 'Login' }
+    ];
+  }
   $scope.active = function(path) {
     return $location.path() === path;
   };

@@ -5,6 +5,7 @@ var auth      = require('./lib/auth');
 var db        = require('./lib/db');
 var redirect  = require('./lib/redirect');
 var user      = require('./controllers/user');
+var account   = require('./controllers/account');
 
 var app = express();
 
@@ -23,11 +24,8 @@ app.use(express.static(path.join(__dirname, 'public/nonsecure')));
 
 // secure connection required from this line on
 app.use(redirect(process.env.SSL_PORT || 443));
-
 //app.use(express.json());
 //app.use(express.urlencoded());
-//app.use(express.methodOverride());
-
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
 app.use(express.session({cookie: { secure: true }, proxy: true}));
 app.use(auth);
@@ -35,6 +33,7 @@ app.use(auth);
 // json api
 app.use(app.router);
 
+app.get('/api/account', account.account);
 app.param('user', user.param.user);
 app.get('/api/user/:user', user.user);
 

@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "dependencies": {
     "http-proxy": "1.0.2",
-    "pg": "2.11.1",
+    "pg": "2.11.1"
   }
 }
