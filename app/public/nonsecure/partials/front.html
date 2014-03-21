@@ -1,0 +1,8 @@
+<div ng-switch on="role">
+  <div ng-switch-when="user">
+    <ng-include src="'/partials/user.html'">
+  </div>
+  <div ng-switch-default>
+    <ng-include src="'/partials/register.html'">
+  </div>
+</div>

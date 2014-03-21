@@ -3,11 +3,11 @@
 /* Controllers */
 
 angular.module('divvd.controllers', []).
-controller('MyCtrl1', [function() {
-
+controller('front', ['$scope', 'auth', function($scope, auth) {
+  $scope.role = auth.role;
+  $scope.username = auth.username;
 }]).
-controller('MyCtrl2', [function() {
-
+controller('login', [function() {
 }]).
 controller('collapse', ['$scope', '$document',
     function($scope, $document) {
