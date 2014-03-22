@@ -8,6 +8,8 @@ controller('front', ['$scope', 'auth', function($scope, auth) {
 }]).
 controller('login', [function() {
 }]).
+controller('signup', [function() {
+}]).
 controller('collapse', ['$scope', '$document',
     function($scope, $document) {
   $scope.isCollapsed = true;
@@ -33,14 +35,14 @@ controller('collapse', ['$scope', '$document',
 controller('navbar', ['$scope', '$location', 'auth',
     function($scope, $location, auth) {
   $scope.user = auth.user;
-  if ($scope.user === 'user') {
+  if ($scope.user.role === 'guest') {
     $scope.routes = [
-      { path: '/', name: 'Home' }
+      { path: '/login', name: 'Login' },
+      { path: '/signup', name: 'Signup' }
     ];
   } else {
     $scope.routes = [
-      { path: '/register', name: 'Register' },
-      { path: '/login', name: 'Login' }
+      { path: '/', name: 'Home' }
     ];
   }
   $scope.active = function(path) {

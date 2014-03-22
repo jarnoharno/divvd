@@ -129,9 +129,10 @@ debug: $(BUILD_DB_PREFIX)init-schema $(PEM)
 	export DATABASE_URL=$(LOCAL_DB_URL); \
 	export PORT=$(PORT); \
 	export SSL_PORT=$(SSL_PORT); \
-	node local/proxy.js $(KEY_PEM) $(CERT_PEM) & ; \
-	bash -c 'cd app && node-debug app.js'; \
-	kill $$!; \
+	(node local/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
+	PROXY_PID=$$!; \
+	bash -c 'cd app && node-debug app.js || pkill node'; \
+	kill $$PROXY_PID; \
 	pg_ctl stop -D $(BUILD_DB) )
 
 run: $(BUILD_DB_PREFIX)init-schema $(PEM)
@@ -140,8 +141,9 @@ run: $(BUILD_DB_PREFIX)init-schema $(PEM)
 	export PORT=$(PORT); \
 	export SSL_PORT=$(SSL_PORT); \
 	(node local/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
-	node app/app.js; \
-	kill $$!; \
+	PROXY_PID=$$!; \
+	(node app/app.js || pkill node); \
+	kill $$PROXY_PID; \
 	pg_ctl stop -D $(BUILD_DB) )
 
 # clean everything

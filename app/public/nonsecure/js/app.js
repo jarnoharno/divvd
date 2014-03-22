@@ -15,8 +15,8 @@ config(['$routeProvider', function($routeProvider) {
   $routeProvider.
     when('/',
       { templateUrl: 'partials/front.html', controller: 'front'} ).
-    when('/register',
-      { templateUrl: 'partials/front.html', controller: 'front' }).
+    when('/signup',
+      { templateUrl: 'partials/signup.html', controller: 'signup' }).
     when('/login',
       { templateUrl: 'partials/login.html', controller: 'login' }).
     otherwise({redirectTo: '/'});

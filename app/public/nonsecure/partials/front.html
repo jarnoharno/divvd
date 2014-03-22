@@ -1,9 +1,10 @@
-<p>Hello {{user.username}}:{{user.role}}.</p>
-<div ng-switch on="user.role">
-  <div ng-switch-when="guest">
-    <ng-include src="'/partials/register.html'">
+<div class="container" ng-switch on="user.role">
+  <div class="form-signin" ng-switch-when="guest">
+    <ng-include src="'/partials/login-form.html'"></ng-include>
+    <h2 class="form-signin-heading">New to Divvd?</h2>
+    <a class="btn btn-lg btn-primary btn-block btn-warning" href="/signup">Sign up</a>
   </div>
   <div ng-switch-default>
-    <ng-include src="'/partials/user.html'">
+    <ng-include src="'/partials/user.html'"></ng-include>
   </div>
 </div>

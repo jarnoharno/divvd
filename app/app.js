@@ -24,27 +24,40 @@ app.use(express.static(path.join(__dirname, 'public/nonsecure')));
 
 // secure connection required from this line on
 app.use(redirect(process.env.SSL_PORT || 443));
-//app.use(express.json());
-//app.use(express.urlencoded());
+app.use(express.json());
+app.use(express.urlencoded());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
 app.use(express.session({cookie: { secure: true }, proxy: true}));
-app.use(auth);
 
-// json api
 app.use(app.router);
 
+// json api
+//
+// json post / cookie authentication endpoints
+// these will always send custom www-authentication header because
+// basic http authentication is not accepted. the reason for this is that
+// we don't want web clients to authenticate automatically by sending
+// credentials with http auth in case they have visited the api pages.
 app.get('/api/account', account.account);
+app.post('/api/login', account.login);
+app.get('/api/logout', account.logout);
+app.post('/api/signup', account.signup);
+
+// all /api/ requests from here on can be authenticated with basic http
+// authentication
+app.all(/^\/api\//, auth.basicHttp);
 app.param('user', user.param.user);
 app.get('/api/user/:user', user.user);
 
 // static secure content
 app.use(express.static(path.join(__dirname, 'public/secure')));
-// serve index.html for all unrecognized routes
+// serve root for all unrecognized routes
 app.use(function(req, res, next) {
   if (req.method == 'GET') {
     res.sendfile(path.join(__dirname, 'public/secure/index.html'));
   } else {
-    next();
+    res.set('Allow', 'GET');
+    res.json(405, { message: 'not allowed' });
   }
 });
 
