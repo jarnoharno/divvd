@@ -14,17 +14,13 @@ angular.module('divvd', [
 config(['$routeProvider', function($routeProvider) {
   $routeProvider.
     when('/',
-      { templateUrl: 'partials/front.html', controller: 'front'} ).
+      { templateUrl: 'partials/front.html' } ).
     when('/signup',
-      { templateUrl: 'partials/signup.html', controller: 'signup' }).
+      { templateUrl: 'partials/signup.html' }).
     when('/login',
-      { templateUrl: 'partials/login.html', controller: 'login' }).
+      { templateUrl: 'partials/login.html' }).
     otherwise({redirectTo: '/'});
 }]).
 config(['$locationProvider', function($locationProvider) {
   $locationProvider.html5Mode(true).hashPrefix('!');
-}])/*.
-config(['$httpProvider',
-    function($httpProvider) {
-  $httpProvider.responseInterceptors.push('httpInterceptor');
-}])*/;
+}]);

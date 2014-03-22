@@ -3,13 +3,38 @@
 /* Controllers */
 
 angular.module('divvd.controllers', []).
-controller('front', ['$scope', 'auth', function($scope, auth) {
-  $scope.user = auth.user;
+
+controller('loginStatus', ['$scope', 'auth', function($scope, auth) {
+  $scope.auth = auth.prop;
 }]).
-controller('login', [function() {
+
+controller('loginForm', ['$scope', '$location', 'auth',
+    function($scope, $location, auth) {
+  $scope.formuser = {
+    name: '',
+    pass: ''
+  };
+  $scope.login = function() {
+    auth.login($scope.formuser).
+    then(function() {
+      // success
+      $location.path('/');
+    }, function() {
+      $scope.showAlert = true;
+    });
+  };
+  $scope.signup = function() {
+    auth.signup($scope.formuser).
+    then(function() {
+      // success
+      $location.path('/');
+    }, function(err) {
+      $scope.showAlert = true;
+      $scope.textAlert = err.data.message;
+    });
+  };
 }]).
-controller('signup', [function() {
-}]).
+
 controller('collapse', ['$scope', '$document',
     function($scope, $document) {
   $scope.isCollapsed = true;
@@ -32,20 +57,9 @@ controller('collapse', ['$scope', '$document',
     $scope.$digest();
   });
 }]).
+
 controller('navbar', ['$scope', '$location', 'auth',
     function($scope, $location, auth) {
-  $scope.user = auth.user;
-  if ($scope.user.role === 'guest') {
-    $scope.routes = [
-      { path: '/login', name: 'Login' },
-      { path: '/signup', name: 'Signup' }
-    ];
-  } else {
-    $scope.routes = [
-      { path: '/', name: 'Home' }
-    ];
-  }
-  $scope.active = function(path) {
-    return $location.path() === path;
-  };
+  $scope.user = auth.prop.user;
+  $scope.logout = auth.logout;
 }]);

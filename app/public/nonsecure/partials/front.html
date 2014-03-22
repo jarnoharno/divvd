@@ -1,8 +1,10 @@
-<div class="container" ng-switch on="user.role">
+<div class="container" ng-switch on="auth.user.role">
   <div class="form-signin" ng-switch-when="guest">
-    <ng-include src="'/partials/login-form.html'"></ng-include>
-    <h2 class="form-signin-heading">New to Divvd?</h2>
-    <a class="btn btn-lg btn-primary btn-block btn-warning" href="/signup">Sign up</a>
+    <ng-include src="'/partials/login-form.html'" onload="formLoaded = true"></ng-include>
+    <div ng-show="formLoaded">
+      <h2 class="form-signin-heading">New to Divvd?</h2>
+      <a class="btn btn-lg btn-primary btn-block btn-warning" href="/signup">Sign up</a>
+    </div>
   </div>
   <div ng-switch-default>
     <ng-include src="'/partials/user.html'"></ng-include>
