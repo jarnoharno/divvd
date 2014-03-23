@@ -16,6 +16,21 @@
             ng-show="u.user.role !== 'guest'">
           <li><a href="/ledgers" ng-click="collapse(true)">Ledgers</a></li>
           <li class="divider"></li>
+          <li ng-show="routeStarts('/ledgers/:ledgerId')">
+            <a href="/ledgers/asdf" ng-click="collapse(true)">
+              <strong>household etc.</strong>
+            </a>
+          </li>
+          <li ng-show="routeStarts('/ledgers/:ledgerId')">
+            <a href="/ledgers/quux/currencies" ng-click="collapse(true)">
+              Currencies
+            </a>
+          </li>
+          <li ng-show="routeStarts('/ledgers/:ledgerId')">
+            <a href="/ledgers/quux/summary" ng-click="collapse(true)">
+              Summary
+            </a>
+          </li>
         </ul>
         <ul class="nav navbar-nav navbar-right"
             ng-show="u.user.role === 'guest'">

@@ -22,6 +22,9 @@ config(['$routeProvider', function($routeProvider) {
   route('/logout');
   route('/ledgers');
   route('/ledgers/:ledgerId');
+  route('/ledgers/:ledgerId/summary');
+  route('/ledgers/:ledgerId/currencies');
+  route('/ledgers/:ledgerId/transactions/:transactionId');
   $routeProvider.otherwise({ redirectTo: '/' });
 }]).
 config(['$locationProvider', function($locationProvider) {

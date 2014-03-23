@@ -9,6 +9,20 @@ body {
   background-color: #eee;
 }
 
+.summary-totals {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.input-sm.table-input {
+  margin: -5px;
+  font-size: 14px;
+}
+
+.tr-total {
+  font-weight: bold;
+}
+
 .form-signin {
   margin-top: 15px;
   max-width: 330px;
