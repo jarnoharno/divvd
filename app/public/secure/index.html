@@ -17,11 +17,12 @@
 
 <body>
 
-  <div ng-controller="loginStatus" ng-show="auth.loginStatusChecked">
+  <div ng-controller="appState" ng-show="u.loginStatusChecked">
     <ng-include src="'/partials/navbar.html'"></ng-include>
-    <div ng-view></div>
+    <ng-include src="'/partials/body.html'"></ng-include>
   </div>
 
+  <ng-view></ng-view> <!-- dummy ngView for router -->
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.2/angular.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.2/angular-route.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.2/angular-resource.min.js"></script>

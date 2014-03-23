@@ -1,0 +1,67 @@
+<div style="height: 60px">
+  <h2 class="sub-header pull-left" style="margin-top: 0">{{auth.user.username}}'s ledgers</h2>
+  <button type="button" class="btn btn-success pull-right">Add new ledger</button>
+</div>
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Action</th>
+        <th>Title</th>
+        <th>Your balance</th>
+        <th>Total value</th>
+        <th>Balanced</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <button type="button" class="btn btn-primary btn-danger btn-xs">
+            <i class="fa fa-trash-o fa-fw"></i> Delete
+          </button>
+        </td>
+        <td><a href="/ledgers/quux">household etc.</a></td>
+        <td class="dropdown">-256.43
+          <a href class="dropdown-toggle">€ <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a>$</a></li>
+            <li><a>€</a></li>
+          </ul>
+        </td>
+        <td class="dropdown">
+          1234.32
+          <a href class="dropdown-toggle">€ <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a>$</a></li>
+            <li><a>€</a></li>
+          </ul>
+        </td>
+        <td class="text-danger">No</td>
+      </tr>
+      <tr>
+        <td>
+          <button type="button" class="btn btn-primary btn-danger btn-xs">
+            <i class="fa fa-trash-o fa-fw"></i> Delete
+          </button>
+        </td>
+        <td><a href="/ledgers/quux">South America</a></td>
+        <td class="dropdown">0
+          <a href class="dropdown-toggle">€ <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a>R$</a></li>
+            <li><a>€</a></li>
+          </ul>
+        </td>
+        <td class="dropdown">
+          2343.32
+          <a href class="dropdown-toggle">R$ <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a>R$</a></li>
+            <li><a>€</a></li>
+          </ul>
+        </td>
+        <td class="text-success">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

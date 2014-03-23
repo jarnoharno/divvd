@@ -10,6 +10,7 @@ body {
 }
 
 .form-signin {
+  margin-top: 15px;
   max-width: 330px;
   margin: 0 auto;
 }

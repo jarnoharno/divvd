@@ -3,6 +3,26 @@
 /* Services */
 
 angular.module('divvd.services', []).
+  // provides route name and parameters after successful change
+  factory('route', ['$route', '$rootScope', '$routeParams',
+      function($route, $rootScope, $routeParams) {
+    var prop = {};
+    function setRouteInfo() {
+      if ($route.current && $route.current.controllerAs) {
+        prop.route = $route.current.controllerAs;
+      } else {
+        console.error('controllerAs not defined!');
+        prop.route = '/';
+      }
+      prop.params = $routeParams;
+      $rootScope.$emit('routeInfoChanged', prop);
+    }
+    $rootScope.$on('$routeChangeSuccess', setRouteInfo);
+    setRouteInfo();
+    return {
+      prop: prop
+    };
+  }]).
   factory('auth', ['$http', '$rootScope', function($http, $rootScope) {
 
     // default guest user
@@ -63,4 +83,14 @@ angular.module('divvd.services', []).
       logout: logout,
       signup: signup
     };
+  }]).
+  factory('routeHandler', ['$rootScope', 'auth', '$location',
+      function($rootScope, auth, $location) {
+    $rootScope.$on('routeInfoChanged', function(event, routeInfo) {
+      if (routeInfo.route === '/logout') {
+        auth.logout().then(function() {
+          $location.path('/');
+        });
+      }
+    });
   }]);

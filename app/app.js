@@ -47,7 +47,8 @@ app.post('/api/signup', account.signup);
 // authentication
 app.all(/^\/api\//, auth.basicHttp);
 app.param('user', user.param.user);
-app.get('/api/user/:user', user.user);
+app.get('/api/users', user.users);
+app.get('/api/users/:user', user.user);
 
 // static secure content
 app.use(express.static(path.join(__dirname, 'public/secure')));

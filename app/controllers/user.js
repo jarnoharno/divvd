@@ -22,6 +22,22 @@ exports.user = function(req, res) {
   }
 }
 
+exports.users = function(req, res) {
+  if (req.session.user && req.session.user.role === 'debug') {
+    db.query('select username, role, user_id from userdata;',
+        [], function(err, result) {
+      if (err) {
+        console.error('failed to load userdata');
+        res.json(500, { message: 'server error' });
+      } else {
+        res.json(result.rows);
+      }
+    });
+  } else {
+    common.requireAuth(req, res);
+  }
+}
+
 exports.param = {};
 
 exports.param.user = function(req, res, next, id) {

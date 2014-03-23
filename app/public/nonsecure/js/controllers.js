@@ -4,8 +4,10 @@
 
 angular.module('divvd.controllers', []).
 
-controller('loginStatus', ['$scope', 'auth', function($scope, auth) {
-  $scope.auth = auth.prop;
+controller('appState', ['$scope', 'auth', 'route',
+    function($scope, auth, route) {
+  $scope.u = auth.prop;
+  $scope.r = route.prop;
 }]).
 
 controller('loginForm', ['$scope', '$location', 'auth',
@@ -56,10 +58,4 @@ controller('collapse', ['$scope', '$document',
     $scope.clickStatus = null;
     $scope.$digest();
   });
-}]).
-
-controller('navbar', ['$scope', '$location', 'auth',
-    function($scope, $location, auth) {
-  $scope.user = auth.prop.user;
-  $scope.logout = auth.logout;
 }]);

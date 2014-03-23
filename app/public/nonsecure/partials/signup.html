@@ -1,16 +1,14 @@
-<div class="container">
-  <form class="form-signin" role="form"
-      ng-controller="loginForm" ng-submit="signup()">
-    <alert type="'danger'" close="showAlert = false" ng-show="showAlert">
-      {{textAlert}}
-    </alert>
-    <h2 class="form-signin-heading">Sign up for Divvd</h2>
-    <input type="text" class="form-control" placeholder="Username" 
-        required autofocus ng-model="formuser.name">
-    <input type="password" class="form-control" placeholder="Password"
-        required ng-model="formuser.pass">
-    <button class="btn btn-lg btn-primary btn-block" type="submit">
-      Sign up
-    </button>
-  </form>
-</div>
+<form class="form-signin" role="form"
+    ng-controller="loginForm" ng-submit="signup()">
+  <alert type="'danger'" close="showAlert = false" ng-show="showAlert">
+    {{textAlert}}
+  </alert>
+  <h2 class="form-signin-heading">Sign up for Divvd</h2>
+  <input type="text" class="form-control" placeholder="Username" 
+      required autofocus ng-model="formuser.name">
+  <input type="password" class="form-control" placeholder="Password"
+      required ng-model="formuser.pass">
+  <button class="btn btn-lg btn-primary btn-block" type="submit">
+    Sign up
+  </button>
+</form>

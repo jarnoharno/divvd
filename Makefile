@@ -16,6 +16,7 @@ BUILD_DB_PREFIX := $(BUILD_DB)/divvd-
 
 # documentation targets
 
+doc: app/public/nonsecure/doc/dokumentaatio.pdf
 app/public/nonsecure/doc/dokumentaatio.pdf: $(BUILD_DOC)/dokumentaatio.pdf | \
 	app/public/nonsecure/doc
 	cp $(BUILD_DOC)/dokumentaatio.pdf app/public/nonsecure/doc/.

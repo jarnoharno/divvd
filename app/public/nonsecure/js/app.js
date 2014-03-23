@@ -1,6 +1,5 @@
 'use strict';
 
-
 // Declare app level module which depends on filters, and services
 angular.module('divvd', [
   'ui.bootstrap',
@@ -12,15 +11,23 @@ angular.module('divvd', [
   'divvd.controllers'
 ]).
 config(['$routeProvider', function($routeProvider) {
-  $routeProvider.
-    when('/',
-      { templateUrl: 'partials/front.html' } ).
-    when('/signup',
-      { templateUrl: 'partials/signup.html' }).
-    when('/login',
-      { templateUrl: 'partials/login.html' }).
-    otherwise({redirectTo: '/'});
+  // abusing 'controllerAs' parameter to provide
+  // route name for routeMap service
+  function route(name) {
+    $routeProvider.when(name, { controllerAs: name });
+  }
+  route('/');
+  route('/signup');
+  route('/login');
+  route('/logout');
+  route('/ledgers');
+  route('/ledgers/:ledgerId');
+  $routeProvider.otherwise({ redirectTo: '/' });
 }]).
 config(['$locationProvider', function($locationProvider) {
   $locationProvider.html5Mode(true).hashPrefix('!');
+}]).
+run(['routeHandler', 'auth', function(logoutHandler, auth) {
+  // force instantiation of routeHandler
+  // authenticate as soon as possible
 }]);

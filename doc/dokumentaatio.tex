@@ -8,6 +8,7 @@
 \usepackage{tikz-uml}
 \usepackage{enumitem}
 \usepackage{calc}
+\usepackage{graphicx}
 \setlist[description]{font={\rmfamily}}
 \addtokomafont{disposition}{\rmfamily}
 
@@ -15,7 +16,7 @@
 \author{Jarno Leppänen}
 \title{Divvd -- Useilla valuutoilla toimiva kustannusten jako}
 \subtitle{Dokumentaatio}
-\date{16.3.2014}
+\date{23.3.2014}
 
 \begin{document}
 
@@ -23,11 +24,13 @@
 
 \section{Johdanto}
 
-Kustannusten jako on tavallinen ongelma esimerkiksi illanvietossa ystävien
+Kustannusten jako on tavallinen ongelma illanvietoissa ystävien
 kanssa tai taloudenpidossa puolison tai kämppäkavereiden välillä. Erityisen
-hankalaksi tehtävä osoittautuu, jos jaettavissa kustannuksissa on käytetty on
-useita eri valuuttoja. Tällainen tilanne voi syntyä esimerkiksi pitkän
-reppumatkan aikana.
+hankalaksi tehtävä osoittautuu, jos jaettavissa kustannuksissa on käytetty
+useita eri valuuttoja. Ulkomailla matkaillessa syntyy helposti tilanteita,
+joissa esimerkiksi matkaliput ja majoitukset on maksettu kotimaan valuutassaa,
+mutta juoksevat kulut hoidetaan kohdemaan valuutassa. Miten kustannukset
+pitäisi silloin jakaa?
 
 Työssä toteutetaan kustannusten jakoon tarkoitettu kirjanpitojärjestelmä, jossa
 kirjauksia voi tehdä eri valuutoilla. Käyttäjä voi rekisteröitymisen ja
@@ -43,8 +46,9 @@ lukumäärä\cite{verhoeff2004settling}.
 \subsection{Toimintaympäristö}
 
 Ohjelma toteutetaan web-sovelluksena heroku-PaaS-palvelun päälle.
-Sovelluskehyksenä käytetään herokun tukemaa node.js-kehystä. Ohjelmointikielenä
-on Javascript sekä selain-, että palvelinympäristössä.
+Sovelluskehyksenä käytetään herokun tukemaa node.js-ympäristöä.
+Selainkäyttöliittymän sovelluskehyksenä käytetään AngularJS-kirjastoa.
+Ohjelmointikielenä sekä selain-, että palvelinympäristöissä on Javascript.
 
 Tietokantana toimii herokun tarjoama PostgreSQL. Tietokantaa käsitellään
 suoraan Postgre\-SQL:n laajennetun SQL-kielen avulla. Toteutuksessa tullaan
@@ -83,7 +87,7 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
 \umlassoc{user}{settle}
 \umlassoc{user}{currency}
 \umlinherit{add-ledger}{ledger}
-\umlinherit{delete-ledger}{ledger}
+  \umlinherit{delete-ledger}{ledger}
 \umlinherit{add-transaction}{transaction}
 \umlinherit{delete-transaction}{transaction}
 \umlinherit{edit-transaction}{transaction}
@@ -124,7 +128,221 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
       Kirjautunut käyttäjä pyytää järjestelmältä ehdotusta velkojen
       takaisinmaksujärjestelystä.
     }
-  \end{description}
+\end{description}
+
+\section{Järjestelmän tietosisältö}
+
+\subsection{Käsitekaavio}
+
+\includegraphics[scale=1.4]{db}
+
+\subsection{Tietokohteet}
+
+\subsubsection{User}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  Name & Merkkijono & Käyttäjän nimi \\ \hline
+  Hash & 256-bittinen binäärinen merkkijono &
+    Salasanasta laskettu hajautusarvo
+    \\ \hline
+  Salt & 64-bittinen binäärinen merkkijono & Satunnainen binäärinen merkkijono
+    \\ \hline
+\end{tabular}
+
+\subsubsection{Ledger}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  Title & Merkkijono & Tilikirjan nimi \\ \hline
+\end{tabular}
+
+\subsubsection{Currency}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  Code & Merkkijono & Valuutan nimi tai lyhenne \\ \hline
+  Rate & Desimaaliluku & Valuutan kurssi \\ \hline
+\end{tabular}
+
+\subsubsection{Transaction}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  Date & Päivämäärä & Tilitapahtuman päivämäärä \\ \hline
+  Description & Merkkijono & Selite \\ \hline
+  Location & Merkkijono & Tilitapahtuman paikka \\ \hline
+  Type & Merkkijono & Tilitapahtuman tyyppi \\ \hline
+  Transfer & Totuusarvo & Totuusarvo, joka kertoo, onko tilitapahtuma
+    rahansiirto vai kulu \\ \hline
+\end{tabular}
+
+\subsubsection{Participant}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  ShareDebt & Totuusarvo & Tosi, jos osapuoli osallistuu
+kattamattomiin kuluihin \\ \hline
+\end{tabular}
+
+\subsubsection{Person}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  Name & Merkkijono & Osapuolen nimi \\ \hline
+\end{tabular}
+
+\subsubsection{Amount}
+\begin{tabular}{ | l | l | l | }
+  \hline
+  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
+  Amount & Desimaaliluku & Rahamäärä \\ \hline
+\end{tabular}
+
+\section{Relaatiotietokantakaavio}
+
+Jokaisella tietokannan taululla on tyyppiä SERIAL oleva synteettinen
+primäärinen avain nimellä \textit{taulu}\_id. Näitä avaimia ei ole piirretty
+kaavioon.
+
+\includegraphics[scale=1.35]{schema}
+
+\section{Käyttöliittymä}
+
+Web-käyttöliittymä toteutetaan "single page"-applikaationa, jossa selaimen
+lataama javascript-käyttöliittymä keskustelee palvelimen JSON-rajapinnan
+kanssa ja päivittää selaimen osoitekenttää kulloinkin näytettävää resurssia
+vastaavaksi. Arkkitehtuurin ansiosta yksittäinen käyttöliittymänäkymä voi
+päivittää tietokantaa osissa ilman, että näkymää tarvitsee ladata palvelimelta
+uudelleen.
+
+\subsection{Käyttöliittymäkaavio}
+
+\includegraphics[scale=1.5]{ui}
+
+\subsection{Näkymät}
+
+\begin{description}[style=nextline]
+  \item[/]{
+      Etusivu näyttää kirjautumattomalle vierailijalle kirjautumislomakkeen sekä
+      linkin rekisteröitymissivulle. Kirjautunut käyttäjä näkee listan omista
+      tilikirjoistaan.
+    }
+  \item[/login]{
+      Kirjautumissivu, joka näyttää pelkän lomakkeen. Onnistuneen kirjautumisen
+      jälkeen käyttäjä ohjataan kirjautuneena etusivulle.
+    }
+  \item[/signup]{
+      Rekistereöitymissivu. Onnistuneen rekisteröinnin jälkeen käyttäjä ohjataan
+      kirjautuneena etusivulle.
+    }
+  \item[/ledgers]{
+      Tilikirjojen listaussivu näyttää rekisteröityneen käyttäjän tilikirjat.
+      Listaussivun kautta tilikirjoja voi lisätä tai poistaa. Sivulta voi myös
+      siirtyä tarkastelemaan yksittäisen tilikirjan tilitapahtumia.
+    }
+  \item[/ledgers/:ledgerId]{
+      Tilikirjan tilitapahtumien listaussivu näyttää kaikki tilikirjaan
+      liittyvät tilitapahtumat. Sivu voidaan näyttää vain, jos kirjautunut
+      käyttää omistaa tilikirjan. Sivun avulla tilitapahtumia voi lisätä ja
+      poistaa. Sivun kautta pääsee myös muokkaamaan yksittäistä tilitapahtumaa.
+    }
+  \item[/ledgers/:ledgerId/summary]{
+      Tilikirjan yhteenveto listaa kaikkien tilikirjaan liittyvien osapuolten
+      kokonaissaldot sekä järjestelmän automaattisesti tuottaman
+      velanmaksusuunnitelman, jonka voi halutessaan siirtää tilitapahtumaksi,
+      jolloin tilikirjan saldot tasapainottuvat.
+    }
+  \item[/ledgers/:ledgerId/currencies]{
+      Valuuttojen muokkaussivu näyttää tilikirjaan liittyvät valuutat
+      kursseineen.  Sivun avulla valuuttoja voi lisätä, poistaa ja muokata.
+    }
+  \item[/ledgers/:ledgersId/:transactionId]{
+      Tilitapahtumasivulla tilitapahtumaa voi muokata. Tilitapahtumaan voi
+      lisätä osapuolten tekemiä maksuja ja velkasitoumuksia.
+    }
+\end{description}
+
+\section{JSON-rajapinta}
+
+Web-käyttöliittymä keskustelee tietokannan kanssa palvelimen tarjoaman
+JSON-rajapinnan kautta. Rajapinnan avulla järjestelmän laajentaminen muille
+alustoille on yksinkertaista. JSON-rajapinta on julkinen, joten myös kolmannet
+osapuolet voivat halutessaan hyödyntää sitä.
+
+\subsection{Tunnistautuminen}
+
+Rajapinta vaatii tunnistautumista joko HTTP Basic -autentikoinnin tai
+selainevästeiden avulla. Selaimen uloskirjautumisen mahdollistamiseksi
+kirjautumiseen liittyvät osoitteet /api/login,
+/api/logout, /api/signup ja /api/account eivät kuitenkaan hyväksy
+HTTP Basic -autentikointia.
+
+Rajapinta vastaa tunnistautumattomaan pyyntöön statuskoodilla 400.
+Vastauksen WWW-Authenticate -otsakkeen voi halutessaan muuttaa
+Custom-tyyppiseksi liittämällä palvelupyyntöön GET-parametri auth=hidden.
+Näin voidaan estää selaimen automaattisesti näyttämä kirjautumisikkuna.
+
+\subsection{Palveluosoitteet}
+
+JSON-rajapinta on vielä keskeneräinen. Toteutetut osoitteet on dokumentoitu
+toiminnallisuuden oheiseen listaan. Parametreja ja paluuviestejä ei kuitenkaan
+ole vielä dokumentoitu.
+
+\begin{description}[style=nextline]
+  \item[POST /api/login]{
+      Kirjaa käyttäjän sisään.
+    }
+  \item[POST /api/signup]{
+      Rekisteröi käyttäjän.
+    }
+  \item[GET /api/account]{
+      Palauttaa kirjautuneen käyttäjän tiedot.
+    }
+  \item[GET /api/logout]{
+      Kirjaa ulos käyttäjän.
+    }
+
+  \item[GET /api/users]{
+      Palauttaa listan käyttäjistä. Hyväksyy myös HTTP Basic -autentikoinnin.
+    }
+  \item[GET /api/users/:userName]{
+      Palauttaa käyttäjän. Hyväksyy myös HTTP Basic -autentikoinnin.
+    }
+  \item[GET /api/users/:userName/ledgers]{
+    }
+
+  \item[POST /api/ledgers]{
+    }
+  \item[GET /api/ledgers/:ledgerId]{
+    }
+  \item[PUT /api/ledgers/:ledgerId]{
+    }
+  \item[DELETE /api/ledgers/:ledgerId]{
+    }
+  \item[GET /api/ledgers/:ledgerId/currencies]{
+    }
+  \item[PUT /api/ledgers/:ledgerId/currencies]{
+    }
+  \item[GET /api/ledgers/:ledgerId/transactions]{
+    }
+  \item[PUT /api/ledgers/:ledgerId/transactions]{
+    }
+
+  \item[GET /api/transactions/:transactionId]{
+    }
+  \item[PUT /api/transactions/:transactionId]{
+    }
+  \item[DELETE /api/transactions/:transactionId]{
+    }
+
+  \item[GET /api/currencies/:currencyId]{
+    }
+  \item[PUT /api/currencies/:currencyId]{
+    }
+  \item[DELETE /api/currencies/:currencyId]{
+    }
+\end{description}
 
 \bibliographystyle{plainnat}
 \bibliography{dokumentaatio}
