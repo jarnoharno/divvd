@@ -24,7 +24,7 @@ exports.user = function(req, res) {
 
 exports.users = function(req, res) {
   if (req.session.user && req.session.user.role === 'debug') {
-    db.query('select username, role, user_id from userdata;',
+    db.query('select username, role, user_id from "user";',
         [], function(err, result) {
       if (err) {
         console.error('failed to load userdata');
@@ -41,7 +41,7 @@ exports.users = function(req, res) {
 exports.param = {};
 
 exports.param.user = function(req, res, next, id) {
-  db.query('select username, role, user_id from userdata where username = $1;',
+  db.query('select username, role, user_id from "user" where username = $1;',
       [id], function(err, result) {
     if (err) {
       console.error('failed to load userdata');

@@ -24,7 +24,7 @@ exports.signup = function(user, req, res) {
       console.error('failed to calculate hash');
       res.json(500, { message: 'server error' });
     } else {
-      db.query('insert into userdata (username, role, pass, salt) values ($1, \'user\', $2, $3) returning user_id;',
+      db.query('insert into "user" (username, role, hash, salt) values ($1, \'user\', $2, $3) returning user_id;',
           [user.name, pass, salt], function(err, result) {
         if (err) {
           if (err.code == 23505) {
@@ -73,7 +73,7 @@ exports.auth = function(user, req, res, callback) {
     callback = function() {};
   }
   db.query(
-      'select username, role, user_id, pass, salt from userdata where username = $1;',
+      'select username, role, user_id, hash, salt from "user" where username = $1;',
       [user.name], function(err, result) {
     if (err) {
       console.error('failed to load userdata');
@@ -85,7 +85,7 @@ exports.auth = function(user, req, res, callback) {
           console.error('failed to calculate hash');
           res.json(500, { message: 'server error' });
         } else {
-          if (buffertools.equals(pass, userdata.pass)) {
+          if (buffertools.equals(pass, userdata.hash)) {
             // save session
             req.session.user = {
               username: userdata.username,
