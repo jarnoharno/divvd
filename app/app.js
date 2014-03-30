@@ -6,6 +6,7 @@ var db        = require('./lib/db');
 var redirect  = require('./lib/redirect');
 var user      = require('./controllers/user');
 var account   = require('./controllers/account');
+var ledger    = require('./controllers/ledger');
 
 var app = express();
 
@@ -25,6 +26,14 @@ app.use(express.static(path.join(__dirname, 'public/nonsecure')));
 // secure connection required from this line on
 app.use(redirect(process.env.SSL_PORT || 443));
 app.use(express.json());
+app.use(function(err, req, res, next) {
+  // ignore error
+  console.log(err.toString());
+  for (i in err) {
+  console.log(i);
+}
+  next(null, req, res);
+});
 app.use(express.urlencoded());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
 app.use(express.session({cookie: { secure: true }, proxy: true}));
@@ -49,10 +58,17 @@ app.all(/^\/api\//, auth.basicHttp);
 app.param('user', user.param.user);
 app.get('/api/users', user.users);
 app.get('/api/users/:user', user.user);
+app.get('/api/users/:user/ledgers', user.ledgers);
+
+app.param('ledger', ledger.param.ledger);
+//app.post('/api/ledgers', ledger.create_ledger);
+app.get('/api/ledgers', ledger.ledgers);
+app.get('/api/ledgers/:ledger', ledger.ledger);
 
 // static secure content
 app.use(express.static(path.join(__dirname, 'public/secure')));
 // serve root for all unrecognized routes
+// maybe simple 404 would be better?
 app.use(function(req, res, next) {
   if (req.method == 'GET') {
     res.sendfile(path.join(__dirname, 'public/secure/index.html'));
