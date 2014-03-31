@@ -16,7 +16,6 @@ values
   E'\\xf255aca0b9f53cd8'
 );
 
-insert into currency (code, rate) values ('€', 1.00000000);
 insert into ledger (title, currency_id) values ('night out', 1);
 insert into owner (user_id, ledger_id) values (1, 1);
 insert into person (name, currency_id, user_id, ledger_id)

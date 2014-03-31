@@ -91,6 +91,21 @@ exports.users = function(req, res) {
   }
 }
 
+exports.delete_user = function(req, res) {
+  if (req.session.user) {
+    if (req.params.user && (
+          req.session.user.user_id === req.params.user.user_id)) {
+      res.json(req.params.user);
+    } else {
+      // User is not found or current user is unauthorized.
+      // In either case return 'user not found'.
+      res.json(404, { message: 'user not found' });
+    }
+  } else {
+    common.requireAuth(req, res);
+  }
+}
+
 // Parses :userName GET parameter
 
 exports.param = {};

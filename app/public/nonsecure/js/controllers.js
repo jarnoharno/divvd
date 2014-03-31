@@ -89,8 +89,8 @@ $scope.mytime = new Date();
 controller('loginForm', ['$scope', '$location', 'auth',
     function($scope, $location, auth) {
   $scope.formuser = {
-    name: '',
-    pass: ''
+    username: '',
+    password: ''
   };
   $scope.login = function() {
     auth.login($scope.formuser).

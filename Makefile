@@ -4,6 +4,7 @@ HEROKU_APP := divvd
 HEROKU_DB := COBALT
 #HEROKU_DB = $(shell heroku pg --app divvd | awk '/DATABASE_URL/ { print $$2 }')
 LOCALHOST := localhost
+LOCALURL := https://$(LOCALHOST):$(SSL_PORT)
 
 BUILD := build
 BUILD_CERT := $(BUILD)/cert
@@ -98,6 +99,8 @@ endif
 create-cluster: $(BUILD_DB)/PG_VERSION
 $(BUILD_DB)/PG_VERSION: | $(BUILD_DB)
 	initdb -D $(BUILD_DB) --encoding=UTF8 --locale=en_US.UTF8 -U postgres
+	sed -i "s/#log_statement = [^#]*/log_statement =     'all' /g" \
+		$(BUILD_DB)/postgresql.conf
 $(BUILD_DB):
 	mkdir -p $(BUILD_DB)
 
@@ -109,6 +112,13 @@ start-db:
 	pg_ctl -w -D $(BUILD_DB) start
 stop-db:
 	pg_ctl -D $(BUILD_DB) stop
+
+# for debugging db
+debug-db:
+	if pg_ctl -w -D $(BUILD_DB) start > /dev/null; then \
+		psql divvd divvd; \
+		pg_ctl -D $(BUILD_DB) stop; \
+	fi;
 
 # create local certificate
 
@@ -125,27 +135,37 @@ $(PEM): | $(BUILD_CERT)
 
 # run local app
 
+define start-local
+	if pg_ctl start -w -D $(BUILD_DB) $1; then \
+		export DATABASE_URL=$(LOCAL_DB_URL); \
+		export PORT=$(PORT); \
+		export SSL_PORT=$(SSL_PORT); \
+		(node local/proxy.js $(KEY_PEM) $(CERT_PEM) $1 &) ; \
+		$2 \
+		pkill node; \
+		pg_ctl stop -D $(BUILD_DB); \
+	fi;
+endef
+
 debug: $(BUILD_DB_PREFIX)init-schema $(PEM)
-	pg_ctl start -w -D $(BUILD_DB) && (\
-	export DATABASE_URL=$(LOCAL_DB_URL); \
-	export PORT=$(PORT); \
-	export SSL_PORT=$(SSL_PORT); \
-	(node local/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
-	PROXY_PID=$$!; \
-	bash -c 'cd app && node-debug app.js || pkill node'; \
-	kill $$PROXY_PID; \
-	pg_ctl stop -D $(BUILD_DB) )
+	$(call start-local,,\
+		(cd app && node-debug app.js);\
+	)
 
 run: $(BUILD_DB_PREFIX)init-schema $(PEM)
-	pg_ctl start -w -D $(BUILD_DB) && (\
-	export DATABASE_URL=$(LOCAL_DB_URL); \
-	export PORT=$(PORT); \
-	export SSL_PORT=$(SSL_PORT); \
-	(node local/proxy.js $(KEY_PEM) $(CERT_PEM) &) ; \
-	PROXY_PID=$$!; \
-	(node app/app.js || pkill node); \
-	kill $$PROXY_PID; \
-	pg_ctl stop -D $(BUILD_DB) )
+	$(call start-local,,\
+		node app/app.js;\
+	)
+
+# test
+
+.PHONY: test
+test: $(BUILD_DB_PREFIX)init-schema $(PEM)
+	$(call start-local,> /dev/null,\
+		(node app/app.js > /dev/null &);\
+		while ! curl -k -s $(LOCALURL)/api/account > /dev/null; do sleep 0.5; done;\
+		mocha;\
+	)
 
 # clean everything
 

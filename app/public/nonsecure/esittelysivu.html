@@ -15,48 +15,20 @@
     <h1>Tietokantasovelluksen esittelysivu</h1>
     <p>Yleisiä linkkejä</p>
     <ul>
-      <!-- Korvaa ohessa olevat sanat GITHUBTUNNUS ja 
-           REPOSITORIO omilla tiedoillasi: -->
       <li><a href="https://github.com/jlep/divvd">Työn repositorio</a></li>
       <li><a href="/doc/dokumentaatio.pdf">Työn dokumentaatio</a></li>
       <li><a href="https://divvd.herokuapp.com/">Web application</a></li>
-
-      <!-- Viikolla 2 voit laittaa kommentoidut linkitkin sivuille. 
-           Ota kommenttimerkit pois sen kielen ympäriltä, jota käytät -->
-
-      <!-- Linkit Java-kielelle.
-           Korvaa sana cstunnus omalla tktl-tunnuksellasi ja sana 
-           Tietokantasovellus tietokantasovelluksesi usersille 
-           pystytetyllä nimellä: 
-      -->
     </ul>
     <p>Kirjautumiseen voi käyttää tunnuksia debug/debug, jolla on
     katseluoikeus kaikkiin palveluosoitteisiin. Käyttöliittymän demosivut ovat
     näkyvillä kirjautumisen jälkeen.
+    <p>Projektissa ei ole varsinaista "view"-komponenttia, sillä palvelin
+    tarjoaa pelkän JSON-rajapinnan. Alla oleva tietokantakomponentti muuntaa
+    tietokannan vastaukset suoraan JSON-dataksi.
     <ul>
       <li><a href="http://jaleppan.users.cs.helsinki.fi/ConnectionTest">Connectiontest-ohjelma</a></li>
       <li><a href="/">HTML-demosivut</a></div>
       <li><a href="/api/users">API test</a></li>
-      <!--
-      <li><a href="http://t-cstunnus.users.cs.helsinki.fi/ConnectionTest">Connectiontest-ohjelma</a></li>
-      <li><a href="http://t-cstunnus.users.cs.helsinki.fi/Tietokantasovellus/html-demo/index.jsp">HTML-demosivujen etusivu</a></li>
-      <li><a href="http://t-cstunnus.users.cs.helsinki.fi/Tietokantasovellus/Listaustesti">Ensimmäinen oma tietokantalistaus</a></li>
-      -->
-      <!-- Linkit PHP-kielelle.
-           Korvaa sana cstunnus omalla tktl-tunnuksellasi ja sana 
-           Tietokantasovellus sen hakemiston nimellä, missä 
-           sovelluksesi usersin htdocs-kansiossa sijaitsee:
-      -->
-      <!--
-      <li><a href="http://cstunnus.users.cs.helsinki.fi/connectiontest.php">Connectiontest-ohjelma</a></li>
-      <li><a href="http://cstunnus.users.cs.helsinki.fi/Tietokantasovellus/html-demo/index.html">HTML-demosivujen etusivu</a></li>
-      <li><a href="http://cstunnus.users.cs.helsinki.fi/Tietokantasovellus/listaustesti.php">Ensimmäinen oma tietokantalistaus</a></li>
-      -->
-      
-      <!-- Viikolla 3 laita alla kommentoitu linkki osoittamaan omaan kirjautumissivuusi. -->
-      <!--
-      <li><a href="http://cstunnus.users.cs.helsinki.fi/Tietokantasovellus/index.php">Sovelluksen kirjautumissivu</a></li>
-      -->
     </ul>
 
     <h2>Työn aihe</h2>
@@ -68,7 +40,7 @@
     joissa esimerkiksi matkaliput ja majoitukset on maksettu kotimaan
     valuutassaa, mutta juoksevat kulut hoidetaan kohdemaan valuutassa. Miten
     kustannukset tulisi tällöin jakaa?
-    
+
     <p>Työssä toteutetaan kustannusten jakoon tarkoitettu
     kirjanpitojärjestelmä, jossa kirjauksia voi tehdä eri valuutoilla.
     Järjestelmä laskee tilikirjassa olevien osapuolten kokonaissaldot haluttuun
@@ -87,13 +59,5 @@
       <li>Velkojen takaisinmaksusuunnitelman ehdottaminen</li>
     </ul>
 
-    <!--
-    <h2>Kirjautumistunnuksia testausta varten</h2>
-
-    <p>Laita tähän viikolla 3 lista tunnuksista, joilla sovellusta voi testata</p>
-    <p>Esim:<br />
-    Pääkäyttäjän tunnus ja salasana:<br /> admin, kissakala
-    </p>
-    -->
   </body>
 </html>

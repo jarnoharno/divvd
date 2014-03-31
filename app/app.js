@@ -27,12 +27,8 @@ app.use(express.static(path.join(__dirname, 'public/nonsecure')));
 app.use(redirect(process.env.SSL_PORT || 443));
 app.use(express.json());
 app.use(function(err, req, res, next) {
-  // ignore error
-  console.log(err.toString());
-  for (i in err) {
-  console.log(i);
-}
-  next(null, req, res);
+  // invalid json
+  res.json(400, { message: err.toString() });
 });
 app.use(express.urlencoded());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
@@ -51,6 +47,7 @@ app.get('/api/account', account.account);
 app.post('/api/login', account.login);
 app.get('/api/logout', account.logout);
 app.post('/api/signup', account.signup);
+app.delete('/api/account', account.delete_account);
 
 // all /api/ requests from here on can be authenticated with basic http
 // authentication
@@ -61,14 +58,14 @@ app.get('/api/users/:user', user.user);
 app.get('/api/users/:user/ledgers', user.ledgers);
 
 app.param('ledger', ledger.param.ledger);
-//app.post('/api/ledgers', ledger.create_ledger);
+app.post('/api/ledgers', ledger.create_ledger);
 app.get('/api/ledgers', ledger.ledgers);
 app.get('/api/ledgers/:ledger', ledger.ledger);
 
 // static secure content
 app.use(express.static(path.join(__dirname, 'public/secure')));
 // serve root for all unrecognized routes
-// maybe simple 404 would be better?
+// this is necessary for angular routing to work
 app.use(function(req, res, next) {
   if (req.method == 'GET') {
     res.sendfile(path.join(__dirname, 'public/secure/index.html'));

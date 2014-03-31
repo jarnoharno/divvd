@@ -1,6 +1,12 @@
 var pg = require('pg');
+var array = require('./array');
 
+// private database url
 var url = null;
+
+exports.escapeSql = function(str) {
+  return str.toString().replace("'","''");
+}
 
 exports.init = function(dburl) {
   if (!dburl) {
@@ -23,7 +29,13 @@ exports.query = function(query, data, callback) {
     if (err) {
       callback(err);
     } else {
-      client.query(query, data, function(err, result) {
+      if (!array.isArray(data)) {
+        callback = data;
+        client.query(query, handler);
+      } else {
+        client.query(query, data, handler);
+      }
+      function handler(err, result) {
         //call `done()` to release the client back to the pool
         done(err);
         if (err) {
@@ -32,12 +44,13 @@ exports.query = function(query, data, callback) {
         } else {
           callback(null, result);
         }
-      });
+      }
     }
   });
 };
 
 // get client from pool
+// caller is responsible for releasing client by calling 'done()'
 exports.client = function(callback) {
   if (!url) {
     var error = 'database unitialized';

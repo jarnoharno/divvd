@@ -16,7 +16,7 @@
 \author{Jarno Leppänen}
 \title{Divvd -- Useilla valuutoilla toimiva kustannusten jako}
 \subtitle{Dokumentaatio}
-\date{23.3.2014}
+\date{30.3.2014}
 
 \begin{document}
 
@@ -207,7 +207,78 @@ kaavioon.
 
 \includegraphics[scale=1.35]{schema}
 
-\section{Käyttöliittymä}
+\section{Järjestelmän yleisrakenne}
+
+Projektin palvelinosio noudattaa MVC-arkkitehtuuria. Koska palvelin tarjoaa
+vain JSON-rajapinnan, toimii "view"-komponentti pelkästään alla olevassa
+sovelluskehyksessä, eikä lähdekoodihakemistopuussa ole "view"-kansiota.
+Sovelluskehyksen tietokantakomponentti muuntaa tietokannasta saadut vastaukset
+javascript-olioiksi, jotka muunnetaan edelleen automaattisesti
+HTTP-vastauksissa oleviksi merkkijonoiksi.
+
+\subsection{Hakemistorakenne}
+
+\begin{description}[style=nextline]
+  \item[/]{
+      Projektin juuri sisältää kaikki projektin kehityksessä tarvittavat
+      tiedostot.
+    }
+  \item[/db]{
+      SQL-tietokantalistaukset.
+    }
+  \item[/doc]{
+      \LaTeX-muotoinen dokumentaatio.
+    }
+  \item[/local]{
+      Paikallisessa sovelluskehityksessä tarvittavat javascript-apuohjelmat.
+    }
+  \item[/test]{
+      Testitiedostot.
+    }
+  \item[/build]{
+      Väliaikaiset käännöstiedostot, jotka eivät kuulu versionhallintaan.
+    }
+  \item[/app]{
+      Tuotantopalvelimella tarvittavat tiedostot.
+    }
+  \item[/app/controllers]{
+      Kontrollerifunktiot, jotka käsittelevät käyttäjien palvelupyynnöt.
+    }
+  \item[/app/lib]{
+      Palvelimen apukirjastot. Sisältää esimerkiksi autentikointiin ja
+      tietokantayhteyteen liittyvät funktiot.
+    }
+  \item[/app/models]{
+      Palvelimen domain-oliot ja niiden persistointi tietokantaan.
+    }
+  \item[/app/public]{
+      Palvelimelta saatavat staattiset tiedostot, selaimessa ajettava
+      asiakassovellus.
+    }
+  \item[/app/public/secure]{
+      Vain TLS-yhteyden yli lähetettävät tiedostot.
+    }
+  \item[/app/public/nonsecure]{
+      Salatun ja salaamattoman yhteyden yli lähetettävät tiedostot.
+    }
+  \item[/app/public/nonsecure/css]{
+      Asiakassovelluksen tyylitiedostot.
+    }
+  \item[/app/public/nonsecure/doc]{
+      Dokumentaatiotiedostot.
+    }
+  \item[/app/public/nonsecure/img]{
+      Asiakassovelluksen kuvatiedostot.
+    }
+  \item[/app/public/nonsecure/partials]{
+      Asiakassovelluksen template-tiedostot
+    }
+  \item[/app/public/nonsecure/js]{
+      Asiakassovelluksen javascript-koodi.
+    }
+\end{description}
+
+\section{Käyttöliittymä ja järjestelmän komponentit}
 
 Web-käyttöliittymä toteutetaan "single page"-applikaationa, jossa selaimen
 lataama javascript-käyttöliittymä keskustelee palvelimen JSON-rajapinnan
