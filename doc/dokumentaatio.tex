@@ -1,4 +1,4 @@
-\documentclass[a4paper]{scrartcl}
+\documentclass[a4paper,parskip=half]{scrartcl}
 \usepackage[finnish]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -9,6 +9,7 @@
 \usepackage{enumitem}
 \usepackage{calc}
 \usepackage{graphicx}
+\usepackage{fancyvrb}
 \setlist[description]{font={\rmfamily}}
 \addtokomafont{disposition}{\rmfamily}
 
@@ -16,11 +17,13 @@
 \author{Jarno Leppänen}
 \title{Divvd -- Useilla valuutoilla toimiva kustannusten jako}
 \subtitle{Dokumentaatio}
-\date{30.3.2014}
+\date{1.4.2014}
 
 \begin{document}
 
 \maketitle
+
+\tableofcontents
 
 \section{Johdanto}
 
@@ -341,79 +344,183 @@ JSON-rajapinnan kautta. Rajapinnan avulla järjestelmän laajentaminen muille
 alustoille on yksinkertaista. JSON-rajapinta on julkinen, joten myös kolmannet
 osapuolet voivat halutessaan hyödyntää sitä.
 
+Rajapinnan suunnittelussa on käytetty apuna Kippt-palvelun API-dokumentaatiota,
+joka on saatavilla osoitteesta
+\url{https://github.com/kippt/api-documentation/}.
+
+\subsection{Formaatti}
+
+Rajapinta hyväksyy ainoastaan JSON-muotoiset POST-parametrit ja myös vastaa
+ainoastaan JSON-muodossa. POST-palvelupyyntöihin on liitettävä
+\texttt{Content-Type: application/json} -otsake.
+
 \subsection{Tunnistautuminen}
 
 Rajapinta vaatii tunnistautumista joko HTTP Basic -autentikoinnin tai
-selainevästeiden avulla. Selaimen uloskirjautumisen mahdollistamiseksi
-kirjautumiseen liittyvät osoitteet /api/login,
-/api/logout, /api/signup ja /api/account eivät kuitenkaan hyväksy
-HTTP Basic -autentikointia.
+selainevästeiden avulla.  Selaimen uloskirjautumisen mahdollistamiseksi
+kirjautumiseen liittyvät osoitteet /api/login, /api/logout, /api/signup ja
+/api/account eivät hyväksy HTTP Basic -autentikointia. Kaikki palveluosoitteet
+lähettävät vain salatun yhteyden yli lähetettävän HttpOnly-sessioevästeen,
+jonka avulla käyttäjän kirjautumisen tilaa seurataan.
 
-Rajapinta vastaa tunnistautumattomaan pyyntöön statuskoodilla 400.
-Vastauksen WWW-Authenticate -otsakkeen voi halutessaan muuttaa
-Custom-tyyppiseksi liittämällä palvelupyyntöön GET-parametri auth=hidden.
-Näin voidaan estää selaimen automaattisesti näyttämä kirjautumisikkuna.
+Rajapinta vastaa tunnistautumattomaan pyyntöön statuskoodilla \texttt{401
+Unauthorized}.  Vastauksen WWW-Authenticate -otsakkeen voi halutessaan muuttaa
+Custom-tyyppiseksi liittämällä palvelupyyntöön GET-parametri auth=hidden.  Näin
+voidaan estää selaimen automaattisesti näyttämä kirjautumisikkuna.
+
+Kirjautumista vaativat palveluosoitteet palauttavat \texttt{401}-virheviestin
+mukana \texttt{WWW-Authenticate: Basic realm="Authorization Required"}
+-otsakkeen. Selaimesta kutsuttuna tämä otsake aiheuttaa yleensä
+kirjautumisikkunan avautumisen. Tämän voi estää liittämällä kutsuun
+GET-parametriksi \texttt{auth=hidden}, jolloin vastauksen otsake muuttuu
+muotoon \texttt{WWW-Authenticate: Custom realm="Authorization Required"}.
+Aiemmin mainitut selaimen kirjautumiseen liittyvät osoitteet palauttavat aina
+custom-tyyppisen otsakkeen.
+
+\subsection{Virhetilanteet}
+
+Asiakkaan aiheuttamiin virhetilanteisiin vastataan statuskoodeilla \texttt{400
+Bad request}, jos syötteessä tai sovelluksen tilassa on virhe. Virheellisiin
+palveluosoitteisiin vastataan statuskoodilla \texttt{404 Not found}. Useimpiin
+osoitevirheisiin vastataan kuitenkin lähettämällä asiakkaalle
+sovellusapplikaation etusivu. Tämä on välttämätöntä single-page
+-arkkitehtuurissa asiakkaan reitityksen toimivuuden takia. Tunnistamattomaan
+osoitteeseen lähetettyihin ei GET-tyyppisiin pyyntöihin vastataan
+statuskoodilla \texttt{405 Not allowed}.
+
+Palvelimen sisäiseen virhetilanteeseen vastataan statuskoodilla \texttt{500
+Internal server error}. Sisäisen virhevastauksen mukana tulevan viestin sisältö
+on aina "server error", jottei palvelun toteutuksen yksityiskohdista anneta
+tietoja käyttäjälle.
+
+Kaikkien virheviestien runkona on seuraava JSON-olio:
+\begin{Verbatim}
+{
+  message:text
+}
+\end{Verbatim}
 
 \subsection{Palveluosoitteet}
 
 JSON-rajapinta on vielä keskeneräinen. Toteutetut osoitteet on dokumentoitu
-toiminnallisuuden oheiseen listaan. Parametreja ja paluuviestejä ei kuitenkaan
-ole vielä dokumentoitu.
+toiminnallisuuden osalta oheiseen listaan. Toteuttamattomista on vain otsikko.
 
-\begin{description}[style=nextline]
-  \item[POST /api/login]{
-      Kirjaa käyttäjän sisään.
-    }
-  \item[POST /api/signup]{
-      Rekisteröi käyttäjän.
-    }
-  \item[GET /api/account]{
-      Palauttaa kirjautuneen käyttäjän tiedot.
-    }
-  \item[GET /api/logout]{
-      Kirjaa ulos käyttäjän.
-    }
+\subsubsection{POST /api/login}
+Kirjaa käyttäjän sisään.
 
-  \item[GET /api/users]{
-      Palauttaa listan käyttäjistä. Hyväksyy myös HTTP Basic -autentikoinnin.
-    }
-  \item[GET /api/users/:userName]{
-      Palauttaa käyttäjän. Hyväksyy myös HTTP Basic -autentikoinnin.
-    }
-  \item[GET /api/users/:userName/ledgers]{
-    }
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  username:text
+  password:text
+}
+\end{Verbatim}
 
-  \item[POST /api/ledgers]{
-    }
-  \item[GET /api/ledgers/:ledgerId]{
-    }
-  \item[PUT /api/ledgers/:ledgerId]{
-    }
-  \item[DELETE /api/ledgers/:ledgerId]{
-    }
-  \item[GET /api/ledgers/:ledgerId/currencies]{
-    }
-  \item[PUT /api/ledgers/:ledgerId/currencies]{
-    }
-  \item[GET /api/ledgers/:ledgerId/transactions]{
-    }
-  \item[PUT /api/ledgers/:ledgerId/transactions]{
-    }
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
 
-  \item[GET /api/transactions/:transactionId]{
-    }
-  \item[PUT /api/transactions/:transactionId]{
-    }
-  \item[DELETE /api/transactions/:transactionId]{
-    }
+\subsubsection{POST /api/signup}
+Rekisteröi käyttäjän.
 
-  \item[GET /api/currencies/:currencyId]{
-    }
-  \item[PUT /api/currencies/:currencyId]{
-    }
-  \item[DELETE /api/currencies/:currencyId]{
-    }
-\end{description}
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  username:text
+  password:text
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{GET /api/account}
+Palauttaa kirjautuneen käyttäjän tiedot.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{DELETE /api/account}
+Kirjaa ulos ja poistaa käyttäjän tietokannasta.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+}
+\end{Verbatim}
+
+\subsubsection{GET /api/logout}
+Kirjaa ulos käyttäjän.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+  \end{Verbatim}
+
+\subsubsection{GET /api/users}
+Palauttaa listan käyttäjistä. Hyväksyy myös HTTP Basic -autentikoinnin.
+
+\subsubsection{GET /api/users/:userName}
+Palauttaa käyttäjän. Hyväksyy myös HTTP Basic -autentikoinnin.
+
+\subsubsection{GET /api/users/:userName/ledgers}
+
+\subsubsection{POST /api/ledgers}
+
+\subsubsection{GET /api/ledgers/:ledgerId}
+
+\subsubsection{PUT /api/ledgers/:ledgerId}
+
+\subsubsection{DELETE /api/ledgers/:ledgerId}
+
+\subsubsection{GET /api/ledgers/:ledgerId/currencies}
+
+\subsubsection{PUT /api/ledgers/:ledgerId/currencies}
+
+\subsubsection{GET /api/ledgers/:ledgerId/transactions}
+
+\subsubsection{PUT /api/ledgers/:ledgerId/transactions}
+
+\subsubsection{GET /api/transactions/:transactionId}
+
+\subsubsection{PUT /api/transactions/:transactionId}
+
+\subsubsection{DELETE /api/transactions/:transactionId}
+
+\subsubsection{GET /api/currencies/:currencyId}
+
+\subsubsection{PUT /api/currencies/:currencyId}
+
+\subsubsection{DELETE /api/currencies/:currencyId}
+
 
 \bibliographystyle{plainnat}
 \bibliography{dokumentaatio}

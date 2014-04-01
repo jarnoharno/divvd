@@ -14,6 +14,11 @@ values
   -- password 'debug'
   E'\\xc0578d25dc68939293d094f99671a0b69e58d0ac5b76a7fe950dad95ccb299be',
   E'\\xf255aca0b9f53cd8'
+),
+( 'admin', 'admin',
+  -- password 'debug'
+  E'\\xc0578d25dc68939293d094f99671a0b69e58d0ac5b76a7fe950dad95ccb299be',
+  E'\\xf255aca0b9f53cd8'
 );
 
 insert into ledger (title, currency_id) values ('night out', 1);

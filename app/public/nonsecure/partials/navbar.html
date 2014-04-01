@@ -40,7 +40,7 @@
         <ul class="nav navbar-nav navbar-right"
             ng-show="u.user.role !== 'guest'">
           <li><a href="/" ng-click="collapse(true)">Home</a></li>
-          <li><a href="/logout" ng-click="collapse(true)">Logout</a></li>
+          <li><a href ng-click="collapse(true); logout()">Logout</a></li>
         </ul>
     </div><!--/.nav-collapse -->
   </div>

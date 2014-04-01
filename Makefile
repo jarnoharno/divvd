@@ -51,8 +51,10 @@ heroku-init-data:
 
 # local database targets
 
+
+
 # targets that require a running local database
-DB_ROOT_TARGETS := create-user create-db grant-all drop-schema
+DB_ROOT_TARGETS := create-user create-db grant-all drop-schema reset-db
 DB_USER_TARGETS := init-schema init-data
 
 DB_TARGETS := $(DB_ROOT_TARGETS) $(DB_USER_TARGETS)
@@ -94,6 +96,8 @@ $(BUILD_DB_PREFIX)init-data: | $(BUILD_DB_PREFIX)grant-all
 $(BUILD_DB_PREFIX)drop-schema: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	rm $(BUILD_DB_PREFIX)init-schema 2> /dev/null; true
+$(BUILD_DB_PREFIX)reset-db: $(BUILD_DB_PREFIX)drop-schema \
+	$(BUILD_DB_PREFIX)init-data
 endif
 
 create-cluster: $(BUILD_DB)/PG_VERSION

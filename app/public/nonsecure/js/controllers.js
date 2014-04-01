@@ -11,6 +11,7 @@ controller('appState', ['$scope', 'auth', 'route',
   $scope.routeStarts = function(route) {
     return $scope.r.route.substring(0, route.length) === route;
   };
+  $scope.logout = auth.logout;
 }]).
 
 controller('transaction', function ($scope) {
