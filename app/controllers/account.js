@@ -20,7 +20,8 @@ exports.account = function(req, res) {
   if (req.session.user) {
     res.json(req.session.user);
   } else {
-    common.requireAuthCustom(req, res, true);
+    // We don't want to send unauthorized just to log user out
+    res.json(400, { message: 'not logged in' });
   }
 };
 
