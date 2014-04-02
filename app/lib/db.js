@@ -50,7 +50,8 @@ exports.query = function(query, data, callback) {
 };
 
 // get client from pool
-// caller is responsible for releasing client by calling 'done()'
+// done() will be called automatically when returned promise is
+// resolved or rejected
 exports.client = function(callback) {
   if (!url) {
     var error = 'database unitialized';

@@ -113,4 +113,29 @@ describe('REST API', function() {
       done(done);
     });
   });
+
+  describe('users', function() {
+    it('login -> /api/users/:userName -> logout', function(done) {
+      var jar = request.jar();
+      req.login(jar)().
+      spread(rassert.user()).
+      then(req.user(jar)).
+      spread(rassert.user()).
+      then(req.logout(jar)).
+      spread(rassert.user()).
+      done(done);
+    });
+
+    it('login -> /api/users/:userName/ledgers -> logout', function(done) {
+      var jar = request.jar();
+      req.login(jar)().
+      spread(rassert.user()).
+      then(req.user_ledgers(jar)).
+      spread(rassert.user_ledgers()).
+      then(req.logout(jar)).
+      spread(rassert.user()).
+      done(done);
+    });
+
+  });
 });

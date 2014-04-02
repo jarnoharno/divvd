@@ -9,6 +9,7 @@ create table "user" (
     check (length(username) > 1 and length(username) <= 80)
     ,
   role role
+    default 'user'
     not null
     ,
   hash bytea

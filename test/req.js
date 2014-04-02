@@ -97,3 +97,13 @@ req.delete_account = function(jar) {
   }
   return req.delete('/api/account', opts);
 }
+
+req.user = function(username, jar) {
+  var uname = 'test';
+  if (username && typeof username !== 'string') {
+    jar = username;
+  } else if (username) {
+    uname = username;
+  }
+  return req.get('/api/users/' + uname, jar);
+}
