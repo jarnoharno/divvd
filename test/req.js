@@ -35,9 +35,9 @@ req.get = function(path, jar) {
   return req(path, opts);
 }
 
-req.post = function(path, opts) {
+req.body = function(method, path, opts) {
   var base = {
-    method: 'POST',
+    method: method,
     body: {}
   };
   if (opts) {
@@ -46,7 +46,15 @@ req.post = function(path, opts) {
   return req(path, base);
 }
 
-req.login = function(username, password, jar) {
+req.delete = function(path, opts) {
+  return req.body('DELETE', path, opts);
+}
+
+req.post = function(path, opts) {
+  return req.body('POST', path, opts);
+}
+
+req.auth_json = function(path, username, password, jar) {
   var opts = {
     body: {
       username: 'test',
@@ -63,7 +71,15 @@ req.login = function(username, password, jar) {
       opts.jar = jar;
     }
   }
-  return req.post('/api/login', opts);
+  return req.post(path, opts);
+}
+
+req.login = function(username, password, jar) {
+  return req.auth_json('/api/login', username, password, jar);
+}
+
+req.signup = function(username, password, jar) {
+  return req.auth_json('/api/signup', username, password, jar);
 }
 
 req.logout = function(jar) {
@@ -72,4 +88,12 @@ req.logout = function(jar) {
 
 req.account = function(jar) {
   return req.get('/api/account', jar);
+}
+
+req.delete_account = function(jar) {
+  var opts = {};
+  if (jar) {
+    opts.jar = jar;
+  }
+  return req.delete('/api/account', opts);
 }
