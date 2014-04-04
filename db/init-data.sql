@@ -21,8 +21,10 @@ values
   E'\\xf255aca0b9f53cd8'
 );
 
-insert into ledger (title, currency_id) values ('night out', 1);
+insert into ledger (title) values ('night out');
 insert into owner (user_id, ledger_id) values (1, 1);
+insert into currency (code, rate, ledger_id) values ('€', 1.00000000, 1);
+insert into ledger_settings (ledger_id, total_currency_id) values (1, 1);
 insert into person (name, currency_id, user_id, ledger_id)
   values ('test', 1, 1, 1);
 insert into transaction
@@ -31,7 +33,7 @@ insert into transaction
 insert into participant (share_debt, credit_currency_id, debit_currency_id,
   shared_debt_currency_id, transaction_id, person_id)
   values (true, 1, 1, 1, 1, 1);
-insert into amount (amount, currency_id, transaction_id, participant_id)
-  values (4.5, 1, 1, 1);
+insert into amount (amount, currency_id, participant_id)
+  values (4.5, 1, 1);
 
 commit;

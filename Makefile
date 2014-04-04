@@ -43,10 +43,12 @@ doc-cont:
 heroku-init-schema:
 	heroku pg:reset $(HEROKU_DB) --app divvd --confirm divvd
 	heroku pg:psql --app divvd < db/init-schema.sql
+	heroku pg:psql --app divvd < db/init-helpers.sql
 
 heroku-init-data:
 	heroku pg:reset COBALT --app divvd --confirm divvd
 	heroku pg:psql --app divvd < db/init-schema.sql
+	heroku pg:psql --app divvd < db/init-helpers.sql
 	heroku pg:psql --app divvd < db/init-data.sql
 
 # local database targets
@@ -86,11 +88,13 @@ $(BUILD_DB_PREFIX)init-schema: db/drop-schema.sql db/init-schema.sql | \
 	$(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	psql divvd divvd -f db/init-schema.sql
+	psql divvd divvd -f db/init-helpers.sql
 	touch $@
 # alternative database targets
 $(BUILD_DB_PREFIX)init-data: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	psql divvd divvd -f db/init-schema.sql
+	psql divvd divvd -f db/init-helpers.sql
 	touch $(BUILD_DB_PREFIX)init-schema
 	psql divvd divvd -f db/init-data.sql
 $(BUILD_DB_PREFIX)drop-schema: | $(BUILD_DB_PREFIX)grant-all

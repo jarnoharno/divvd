@@ -24,27 +24,9 @@ create table "user" (
     primary key
 );
 
-create table currency (
-  code text
-    not null
-    ,
-  rate numeric(16,8)
-    check (rate > 0)
-    not null
-    ,
-  currency_id serial
-    primary key
-);
-
 create table ledger (
   title text
     not null
-    ,
-  -- currency for total value
-  currency_id integer
-    default 1
-    not null
-    references currency on delete set default
     ,
   ledger_id serial
     primary key
@@ -65,15 +47,45 @@ create table owner (
   unique (user_id, ledger_id)
 );
 
+create table currency (
+  code text
+    not null
+    ,
+  rate numeric(16,8)
+    check (rate > 0)
+    not null
+    ,
+  ledger_id integer
+    not null
+    references ledger on delete cascade
+    ,
+  currency_id serial
+    primary key
+);
+
+create table ledger_settings (
+  ledger_id integer
+    not null
+    references ledger on delete cascade
+    ,
+  total_currency_id integer
+    references currency on delete set null
+    ,
+  ledger_settings_id serial
+    primary key
+    ,
+  -- ledger can have only one ledger_settings object
+  unique (ledger_id, ledger_settings_id)
+);
+
 create table person (
   name text
     not null
     ,
   -- curreny for total balance
   currency_id integer
-    default 1
-    not null
-    references currency on delete set default
+    -- null
+    references currency on delete set null
     ,
   user_id integer
     -- null
@@ -111,9 +123,8 @@ create table transaction (
     references ledger on delete cascade
     ,
   currency_id integer
-    default 1
-    not null
-    references currency on delete set default
+    -- null
+    references currency on delete set null
     ,
   transaction_id serial
     primary key
@@ -126,25 +137,22 @@ create table participant (
     ,
   -- currency for total credit
   credit_currency_id integer
-    default 1
-    not null
-    references currency on delete set default
+    -- null
+    references currency on delete set null
     ,
   -- currency for total debit
   debit_currency_id integer
-    default 1
-    not null
-    references currency on delete set default
+    -- null
+    references currency on delete set null
     ,
   -- currency for shared debt
   shared_debt_currency_id integer
-    default 1
-    not null
-    references currency on delete set default
+    -- null
+    references currency on delete set null
     ,
   transaction_id integer
     not null
-    references transaction
+    references transaction on delete cascade
     ,
   person_id integer
     not null
@@ -161,17 +169,12 @@ create table amount (
     not null
     ,
   currency_id integer
-    default 1
-    not null
-    references currency on delete set default
-    ,
-  transaction_id integer
-    not null
-    references transaction on delete cascade
+    -- null
+    references currency on delete set null
     ,
   participant_id integer
     not null
-    references participant
+    references participant on delete cascade
     ,
   amount_id serial primary key
 );
@@ -179,23 +182,48 @@ create table amount (
 -- triggers
 
 -- delete ledgers that are not owned by anyone
+-- this cascades the deletion of a user to everything the user owns
 --
--- this might be more efficient as a row level trigger
--- that would get the deleted owner row as a special variable
+-- this might be more efficient as a row level trigger that would get the
+-- deleted owner row as a special variable instead of subquerying for the
+-- entire owner table and comparing it to all ledger ids
 
-create function ledger_owner_check() returns trigger as $$
+create function owner_ledger_check() returns trigger as $$
 begin
   delete from ledger where ledger_id not in (select ledger_id from owner);
   return null;
 end;
 $$ language plpgsql;
 
-create trigger ledger_owner_trigger
-  after delete on owner
-  execute procedure ledger_owner_check();
+create trigger owner_ledger_trigger
+after delete or update of ledger_id on owner
+execute procedure owner_ledger_check();
+
+-- constraint triggers
+
+-- check that ledgers have owners and settings
+
+create function ledger_constraint_check() returns trigger as $$
+begin
+	if (select exists(select 1 from owner as a
+      where a.ledger_id = new.ledger_id limit 1)) then
+    if (select exists(select 1 from ledger_settings as a
+        where a.ledger_id = new.ledger_id limit 1)) then
+  		return new;
+    end if;
+    raise exception '''%'' does not have settings', new.title;
+	end if;
+	raise exception '''%'' does not have any owners', new.title;
+end;
+$$ language plpgsql;
+
+create constraint trigger ledger_constraint_trigger
+after insert or update on ledger deferrable initially deferred
+for each row execute procedure ledger_constraint_check();
+
+-- we could have a constraint for preventing the destruction of ledger
+-- settings...
 
 -- mandatory data
-
-insert into currency (code, rate) values ('€', 1.00000000);
 
 commit;

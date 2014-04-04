@@ -44,7 +44,7 @@
 
     Ledger = {
       title: string
-      currency_id: integer
+      total_currency_id: integer
       currencies: [Currency]
       persons: [Person]
       owners: [User]
@@ -54,6 +54,7 @@
     Currency = {
       code: string
       rate: number
+      ledger_id: integer
       currency_id: integer
     }
 
@@ -61,6 +62,7 @@
       name: string
       currency_id: integer
       user_id: integer
+      ledger_id: integer
       person_id: integer
     }
 
@@ -87,5 +89,6 @@
     Amount = {
       amount: number
       currency_id: integer
+      participant_id: integer
       amount_id: integer
     }

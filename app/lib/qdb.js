@@ -31,12 +31,40 @@ db.init = function(dburl) {
 // returns result as promise
 
 db.query = function(queryString, data) {
-  return db.client(function(client) {
-    var query = Promise.promisify(client.query.bind(client));
+  return db.client(function(query) {
     if (data) {
       return query(queryString, data);
     }
     return query(queryString);
+  });
+};
+
+// run transaction
+//
+// begin statement will be issued if connection is succesfully formed.
+// if user procedure resolves, commit will be issued automatically.
+// rollback will be issued on failure.
+//
+// return procedure's return value as promise
+
+db.transaction = function(procedure) {
+  return db.client(function(query) {
+    return query('begin;').
+    then(function() {
+      return Promise.try(procedure.bind(null, query)).
+      catch(function(err) {
+        return query('rollback;').
+        then(function() {
+          throw err;
+        });
+      }).
+      then(function(result) {
+        return query('commit;').
+        then(function() {
+          return result;
+        });
+      });
+    });
   });
 };
 
@@ -55,7 +83,7 @@ db.client = function(procedure) {
   spread(function(client, done) {
     // this ain't pretty
     clientDone = done;
-    return client;
+    return Promise.promisify(client.query.bind(client));
   }).
   then(procedure).
   finally(clientDone);
