@@ -2,36 +2,14 @@ var Ledger = require('../models/ledger');
 var currency = require('./currency');
 var user = require('./user');
 var person = require('./person');
-var db = require('../lib/qdb');
-var array = require('../lib/array');
 var Hox = require('../lib/hox');
 var Promise = require('bluebird');
 var merge = require('../lib/merge');
-//var orm = require('../lib/orm');
+var shitorm = require('../lib/shitorm');
+var util = require('./util');
+var extend = require('../lib/extend');
 
 var dao = module.exports = {};
-
-function construct_ledger(result) {
-  return new Ledger(result.rows[0]);
-}
-
-function insert_ledger(title, qdb) {
-  return qdb.query('insert into ledger (title) values ($1) returning ledger_id;',
-      [title]).
-  then(function(result) {
-    return result.rows[0].ledger_id;
-  });
-}
-
-function insert_owner(user_id, ledger_id, qdb) {
-  return qdb.query('insert into owner (user_id, ledger_id) values ($1, $2);',
-      [user_id, ledger_id]);
-}
-
-function insert_ledger_settings(ledger_id, total_currency_id, qdb) {
-  return qdb.query('insert into ledger_settings (ledger_id, total_currency_id) values ($1, $2);',
-      [ledger_id, total_currency_id]);
-}
 
 // Creates a new ledger with a transaction
 //
@@ -109,9 +87,64 @@ dao.create = function(props, qdb) {
   });
 };
 
+dao.find = function(ledger_id, db) {
+  db = db || require('../lib/qdb');
+  return db.transaction(function(query) {
+    var q = { query: query };
+    return Promise.bind(new Ledger({ ledger_id: ledger_id })).
+
+    // select ledger
+    then(function() {
+      return select_ledger(ledger_id, q);
+    }).
+    then(function(ledger) {
+      extend(this, ledger);
+    }).
+
+    // select owners
+    then(function() {
+      return user.find_by_ledger_id(ledger_id, db);
+    }).
+    then(function(users) {
+      this.owners = users;
+    }).
+
+    // select persons
+    then(function() {
+      return person.find_by_ledger_id(ledger_id, db);
+    }).
+    then(function(persons) {
+      this.persons = persons;
+    }).
+
+    // select currencies
+    then(function() {
+      return currency.find_by_ledger_id(ledger_id, db);
+    }).
+    then(function(currencies) {
+      this.currencies = currencies;
+    }).
+
+    then(function() {
+      return this;
+    });
+  });
+};
+
+dao.find_by_user_id = function(user_id, db) {
+  db = db || require('../lib/qdb');
+  return db.query('select title, total_currency_id, ledger_id from ledger natural join ledger_settings natural join owner where user_id = $1;',
+      [user_id]).
+  then(function(result) {
+    return result.rows.map(function(row) {
+      return new Ledger(row);
+    });
+  });
+}
+
 // automatically generated stuff
-/*
-var ledger_orm = orm({
+
+var orm = shitorm({
   props: [
     'title'
   ],
@@ -120,48 +153,35 @@ var ledger_orm = orm({
   constructor: Ledger
 });
 
-dao.delete = ledger_orm.generate_delete();
-*/
-dao.delete = function(ledger_id, qdb) {
-  qdb = qdb || require('../lib/qdb');
-  return qdb.query('delete from ledger where ledger_id = $1 returning title, ledger_id;',
+dao.delete = orm.delete;
+dao.update = orm.update;
+
+// private
+
+function insert_ledger(title, qdb) {
+  return qdb.query('insert into ledger (title) values ($1) returning ledger_id;',
+      [title]).
+  then(util.first_row).
+  then(function(row) {
+    return row.ledger_id;
+  });
+}
+
+function insert_owner(user_id, ledger_id, qdb) {
+  return qdb.query('insert into owner (user_id, ledger_id) values ($1, $2);',
+      [user_id, ledger_id]);
+}
+
+function insert_ledger_settings(ledger_id, total_currency_id, qdb) {
+  return qdb.query('insert into ledger_settings (ledger_id, total_currency_id) values ($1, $2);',
+      [ledger_id, total_currency_id]);
+}
+
+function select_ledger(ledger_id, db) {
+  return db.query('select title, total_currency_id, ledger_id from ledger natural join ledger_settings where ledger_id = $1 limit 1;',
       [ledger_id]).
-  then(construct_ledger);
-};
-
-dao.find = function(pk) {
-  var query =
-      'select ' + obj.props_string + ' from ' + obj.table + ' where ' +
-      obj.pk + ' = $1 limit 1;';
-  return db.query(query, [pk]).
-  then(check_empty).
-  then(construct);
-};
-
-dao.update = function(pk, props) {
-
-  var keys = Object.keys(props).filter(function(k) {
-    return obj.keys_filter[k];
+  then(util.first_row).
+  then(function(row) {
+    return new Ledger(row);
   });
-  var values = keys.map(function(k) {
-    return props[k];
-  });
-  values.push(pk);
-
-  // only keys that match to one of the keys in keys_filter will be
-  // concatenated in the query string
-
-  var query =
-    'update ' + obj.table + ' set ' +
-    keys.map(function(k, i) {
-      return k + ' = $' + (i + 1);
-    }).join(', ') +
-    ' where ' + obj.pk + ' = $' + (keys.length + 1) +
-    ' returning ' + obj.props_string + ';';
-
-  return db.query(query, values).
-  error(unique_violation).
-  then(check_empty).
-  then(construct);
-};
-
+}

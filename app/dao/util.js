@@ -2,7 +2,7 @@ var util = module.exports = {};
 
 util.first_row = function(result) {
   return result.rows[0];
-}
+};
 
 util.pg_error = function(err) {
   switch (parseInt(err.cause.code)) {
@@ -13,11 +13,31 @@ util.pg_error = function(err) {
     default:
       throw err;
   }
-}
+};
+
+util.check_empty = function(result) {
+  if (result.rowCount == 0) {
+    throw new Hox(400, 'not found');
+  }
+};
 
 util.single_row_query = function(query) {
   return function() {
     return query.apply(null, arguments).
-    then(first_row);
+    then(util.first_row);
   }
-}
+};
+
+util.construct = function(constructor) {
+  return function(result) {
+    return new constructor(util.first_row(result));
+  }
+};
+
+util.construct_set = function(constructor) {
+  return function(result) {
+    return result.rows.map(function(row) {
+      return new constructor(row);
+    });
+  }
+};

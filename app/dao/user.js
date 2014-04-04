@@ -2,78 +2,53 @@ var User = require('../models/user');
 var db = require('../lib/qdb');
 var crypt = require('../lib/qcrypt');
 var Hox = require('../lib/hox');
+var qdb = require('../lib/qdb');
+var util = require('./util');
+var shitorm = require('../lib/shitorm');
 
-var user = module.exports = {};
+var dao = module.exports = {};
 
-function construct_user(result) {
-  if (result.rowCount == 0) {
-    throw new Hox(400, 'user not found');
-  }
-  return new User(result.rows[0]);
-}
+var construct_user = util.construct(User);
 
-function unique_violation(err) {
-  if (err.cause.code == 23505) {
-    // postgresql unique_violation
-    throw new Hox(400, 'user already exists');
-  }
-  // unidentified error
-  throw err;
-}
-
-// all methods return a User
-
-user.create = function(username, password) {
+dao.create = function(username, password, db) {
+  db = db || qdb;
   return crypt(password).
   then(function(crypt) {
     return db.query('insert into "user" (username, hash, salt) values ($1, $2, $3) returning username, role, user_id;',
         [username, crypt.hash, crypt.salt]);
   }).
-  error(unique_violation).
   then(construct_user);
 };
 
-user.delete = function(user_id) {
-  return db.query('delete from "user" where user_id = $1 returning username, role, user_id;',
-      [user_id]).
-  then(constructUser);
+dao.find_by_ledger_id = function(ledger_id, db) {
+  db = db || qdb;
+  return db.query('select username, role, user_id from "user" natural join owner where ledger_id = $1;',
+      [ledger_id]).
+  then(function(result) {
+    return result.rows.map(function(row) {
+      return new User(row);
+    });
+  });
 };
 
-user.find = function(user_id, qdb) {
-  return qdb.query('select username, role, user_id from "user" where user_id = $1 limit 1;',
-      [user_id]).
-  then(construct_user);
-};
-
-user.find_username = function(username) {
+dao.find_username = function(username) {
   return db.query('select username, role, user_id from "user" where username = $1 limit 1;',
       [username]).
   then(construct_user);
 };
 
-user.update = function(user_id, user) {
-  var keys_filter = {
-    username: true,
-    role: true
-  };
+// automatically generated stuff
 
-  var keys = Object.keys(user).filter(function(k) { return keys_filter[k]; });
-  var values = keys.map(function(k) { return user[k]; });
-  values.push(user_id);
+var orm = shitorm({
+  props: [
+    'username',
+    'role'
+  ],
+  pk: 'user_id',
+  table: 'user',
+  constructor: User
+});
 
-  // only keys that match to one of the keys in keys_filter will be
-  // concatenated in the query string
-
-  var query =
-    'update "user" set ' +
-    keys.map(function(k, i) {
-      return k + ' = $' + (i + 1);
-    }).join(', ') +
-    ' where user_id = $' + (keys.length + 1) +
-    ' returning username, role, user_id;';
-
-  return db.query(query, values).
-  error(unique_violation).
-  then(construct_user);
-};
-
+dao.delete = orm.delete;
+dao.update = orm.update;
+dao.find = orm.find;
