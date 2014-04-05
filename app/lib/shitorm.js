@@ -1,5 +1,6 @@
 var Hox = require('./hox');
 var qdb = require('./qdb');
+var util = require('../dao/util');
 
 module.exports = orm;
 
@@ -38,7 +39,7 @@ function orm(obj) {
         obj.props.map(function(v, i) { return '$' + (i + 1); }).join(', ') +
         ') returning ' + obj.all_string + ';';
     return db.query(query, props).
-    error(unique_violation).
+    error(util.pg_error).
     then(construct);
   };
 

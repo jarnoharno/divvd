@@ -1,22 +1,25 @@
 var crypto = require('crypto');
 var Promise = require('bluebird');
 
-module.exports = qcrypt;
+module.exports = crypt;
 
 var iterations = 10000;
-var hashSize = 32;
-var saltSize = 8;
+var hash_size = 32;
+var salt_size = 8;
 
-function qcrypt(password) {
-  return Promise.promisify(crypto.randomBytes)(saltSize).
-  then(function(salt) {
-    return Promise.promisify(crypto.pbkdf2)
-        (password, salt, iterations, hashSize).
-    then(function(hash) {
-      return {
-        hash: hash,
-        salt: salt
-      };
+function crypt(password, salt) {
+  if (!salt) {
+    return Promise.promisify(crypto.randomBytes)(salt_size).
+    then(function(salt) {
+      return crypt(password, salt);
     });
+  }
+  return Promise.promisify(crypto.pbkdf2)
+      (password, salt, iterations, hash_size).
+  then(function(hash) {
+    return {
+      hash: hash,
+      salt: salt
+    };
   });
 }

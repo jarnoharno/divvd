@@ -1,3 +1,5 @@
+var Hox = require('../lib/hox');
+
 var util = module.exports = {};
 
 util.first_row = function(result) {
@@ -9,7 +11,8 @@ util.pg_error = function(err) {
     case 23503: // foreign key violation
       throw new Hox(400, err.cause.detail);
     case 23505: // unique violation
-      throw new Hox(400, err.cause.detail);
+      throw new Hox(400,
+        err.cause.detail.match(/^Key \(([^)]*)\)/)[1] + ' already exists');
     default:
       throw err;
   }
@@ -17,7 +20,7 @@ util.pg_error = function(err) {
 
 util.check_empty = function(result) {
   if (result.rowCount == 0) {
-    throw new Hox(400, 'not found');
+    throw new Hox(404, 'not found');
   }
 };
 

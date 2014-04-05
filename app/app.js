@@ -7,6 +7,7 @@ var redirect  = require('./lib/redirect');
 var user      = require('./controllers/user');
 var account   = require('./controllers/account');
 var ledger    = require('./controllers/ledger');
+var common    = require('./controllers/common');
 
 var app = express();
 
@@ -33,6 +34,14 @@ app.use(function(err, req, res, next) {
 app.use(express.urlencoded());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
 app.use(express.session({cookie: { secure: true }, proxy: true}));
+app.use(function(req, res, next) {
+  req.props = {};
+  // get hidden param
+  if (req.query && req.query.auth === 'hidden') {
+    req.props.auth_hidden = true;
+  }
+  next();
+}
 
 app.use(app.router);
 
@@ -43,6 +52,9 @@ app.use(app.router);
 // basic http authentication is not accepted. the reason for this is that
 // we don't want web clients to authenticate automatically by sending
 // credentials with http auth in case they have visited the api pages.
+app.all(/^\/api\/(account|login|logout|signup)/, function(req, res, next) {
+  req.props.auth_hidden = true;
+});
 app.get('/api/account', account.account);
 app.post('/api/login', account.login);
 app.get('/api/logout', account.logout);
@@ -51,7 +63,7 @@ app.delete('/api/account', account.delete_account);
 
 // all /api/ requests from here on can be authenticated with basic http
 // authentication
-app.all(/^\/api\//, auth.basicHttp);
+app.all(/^\/api\//, common.require_authentication);
 app.param('user', user.param.user);
 app.get('/api/users', user.users);
 app.get('/api/users/:user', user.user);
@@ -73,6 +85,9 @@ app.use(function(req, res, next) {
     res.set('Allow', 'GET');
     res.json(405, { message: 'not allowed' });
   }
+});
+app.use(function(err, req, res, next) {
+  common.handle(res, req.props.auth_hidden)(err);
 });
 
 // launch server

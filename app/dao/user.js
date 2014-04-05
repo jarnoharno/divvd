@@ -5,20 +5,46 @@ var Hox = require('../lib/hox');
 var qdb = require('../lib/qdb');
 var util = require('./util');
 var shitorm = require('../lib/shitorm');
+var buffertools = require('buffertools');
 
 var dao = module.exports = {};
 
 var construct_user = util.construct(User);
 
-dao.create = function(username, password, db) {
+dao.create = function(body, db) {
   db = db || qdb;
-  return crypt(password).
-  then(function(crypt) {
+  return crypt(body.password).
+  then(function(res) {
     return db.query('insert into "user" (username, hash, salt) values ($1, $2, $3) returning username, role, user_id;',
-        [username, crypt.hash, crypt.salt]);
+        [body.username, res.hash, res.salt]);
   }).
+  error(util.pg_error).
   then(construct_user);
 };
+
+dao.find_username_and_password = function(body, db) {
+  db = db || qdb;
+  return db.query('select username, role, user_id, hash, salt from "user" where username = $1;',
+      [body.username]).
+  then(function(result) {
+    if (!result.rowCount) {
+      not_found();
+    }
+    var row = result.rows[0];
+    return crypt(body.password, row.salt).
+    then(function(res) {
+      if (buffertools.equals(res.hash, row.hash)) {
+        return new User(row);
+      } else {
+        not_found();
+      }
+    });
+  });
+};
+
+function not_found() {
+  throw new Hox(401, 'username and password do not match');
+}
 
 dao.find_by_ledger_id = function(ledger_id, db) {
   db = db || qdb;

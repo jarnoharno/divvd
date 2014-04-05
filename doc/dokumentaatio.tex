@@ -17,7 +17,7 @@
 \author{Jarno Leppänen}
 \title{Divvd -- Useilla valuutoilla toimiva kustannusten jako}
 \subtitle{Dokumentaatio}
-\date{1.4.2014}
+\date{6.4.2014}
 
 \begin{document}
 
@@ -336,6 +336,69 @@ uudelleen.
       lisätä osapuolten tekemiä maksuja ja velkasitoumuksia.
     }
 \end{description}
+
+\section{Asennustiedot}
+
+\subsection{Kehitysversio}
+
+Sovelluksen paikallisen kehitysversion ajamiseen tarvitaan
+node.js-sovelluskehys, PostgreSQL-tietokanta sekä openSSH-ohjelmisto. Kaikki
+sovelluksen kääntämiseen, päivittämiseen ja tietokannan käsittelyyn
+liittyvät toiminnot hoidetaan make-ohjelmalla. Make myös huolehtii kaikista
+riippuvuuksista. Kaikki väliaikaiset käännöstiedostot sekä
+paikallinen tietokanta sijoitetaan juuressa olevaan build-hakemistoon.
+
+Tietokannan voi alustaa seuraavalla komennolla:
+\begin{Verbatim}
+make reset-db
+\end{Verbatim}
+
+Sovelluksen voi ajaa paikallisesti seuraavalla komennolla:
+\begin{Verbatim}
+make run
+\end{Verbatim}
+Tämä huolehtii tietokannan alustamisesta ja salausavainten generoinnista,
+käynnistää tietokantaprosessin, https-proxypalvelimen sekä varsinaisen
+sovelluspalvelimen ja jää odottamaan käyttäjän keskeytystä (Ctrl-C).
+Sovellus näkyy osoitteissa \url{https://localhost:4000} sekä
+\url{http://localhost:3000}.
+
+\subsection{Dokumentaatio}
+Dokumentaation kääntämisessä käytetään pdflatex-ohjelmistoa, latexmk-skriptiä
+sekä muokattua TikzUML-pakettia (\url{https://github.com/jlep/tikzuml}).
+Pelkän dokumentaation voi kääntää ja asentaa seuraavalla komennolla:
+\begin{Verbatim}
+make doc
+\end{Verbatim}
+
+Dokumentaatiota voi muokata reaaliajassa seuraavalla komennolla:
+\begin{Verbatim}
+make doc-cont
+\end{Verbatim}
+Tämä jää odottamaan muutoksia dokumentaation lähdekoodissa ja kääntää
+dokumentaation tarvittavilta osin uudelleen muutoksen havaitessaan. Prosessin
+voi keskeyttää näppäinkomennolla Ctrl-C.
+
+\subsection{Tuotantoversio}
+
+Sovellus on suunniteltu Heroku-alustalle. Tuotantoversion asentaminen
+vaatii heroku toolbelt -ohjelmiston. Tietokannan yhteystiedot ja salasana
+on tallennettu heroku-tilille ympäristömuuttujana, eikä ole siis näkyvillä
+missään paikallisesti.
+
+Tuotantoversion voi päivittää työntämällä app-hakemistoon alustetun
+git-repositorion herokuun.
+
+Herokussa olevan tietokannan voi alustaa seuraavalla komennolla:
+\begin{Verbatim}
+make heroku-init-data
+\end{Verbatim}
+
+\section{Käynnistys- / käyttöohje}
+Sovellus on asennettu osoitteeseen \url{https://divvd.herokuapp.com/}.
+Sovellukseen voi rekisteröidä uuden käyttäjätunnuksen tai kirjautua
+testitunnuksilla test/test. Toistaiseksi myös debug/debug sekä admin/debug
+-tunnukset ovat käytössä.
 
 \section{JSON-rajapinta}
 
