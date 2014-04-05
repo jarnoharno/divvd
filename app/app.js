@@ -1,13 +1,12 @@
 var express   = require('express');
 var http      = require('http');
 var path      = require('path');
-var auth      = require('./lib/auth');
-var db        = require('./lib/db');
 var redirect  = require('./lib/redirect');
 var user      = require('./controllers/user');
 var account   = require('./controllers/account');
 var ledger    = require('./controllers/ledger');
 var common    = require('./controllers/common');
+var db        = require('./lib/qdb');
 
 var app = express();
 
@@ -34,14 +33,6 @@ app.use(function(err, req, res, next) {
 app.use(express.urlencoded());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
 app.use(express.session({cookie: { secure: true }, proxy: true}));
-app.use(function(req, res, next) {
-  req.props = {};
-  // get hidden param
-  if (req.query && req.query.auth === 'hidden') {
-    req.props.auth_hidden = true;
-  }
-  next();
-}
 
 app.use(app.router);
 
@@ -52,9 +43,6 @@ app.use(app.router);
 // basic http authentication is not accepted. the reason for this is that
 // we don't want web clients to authenticate automatically by sending
 // credentials with http auth in case they have visited the api pages.
-app.all(/^\/api\/(account|login|logout|signup)/, function(req, res, next) {
-  req.props.auth_hidden = true;
-});
 app.get('/api/account', account.account);
 app.post('/api/login', account.login);
 app.get('/api/logout', account.logout);
@@ -68,6 +56,7 @@ app.param('user', user.param.user);
 app.get('/api/users', user.users);
 app.get('/api/users/:user', user.user);
 app.get('/api/users/:user/ledgers', user.ledgers);
+app.delete('/api/users/:user', user.delete);
 
 app.param('ledger', ledger.param.ledger);
 app.post('/api/ledgers', ledger.create_ledger);
@@ -87,7 +76,10 @@ app.use(function(req, res, next) {
   }
 });
 app.use(function(err, req, res, next) {
-  common.handle(res, req.props.auth_hidden)(err);
+  // error happened somewhere else than inside controllers which should always
+  // use promises
+  console.error('express error handler');
+  common.handle(res)(err);
 });
 
 // launch server

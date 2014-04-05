@@ -11,13 +11,16 @@ session.delete = function(req, user_id) {
   // delete session data and respond
   // this depends on sessionStore providing 'all' method, which is
   // the case with the default express session memory store
-  return Promise.promisify(req.sessionStore.all)().
+  return Promise.promisify(req.sessionStore.all.bind(req.sessionStore))().
   then(function(sessions) {
     sessions.forEach(function(session) {
       if (session.user && session.user.user_id == user_id) {
         delete session.user;
       }
     });
+    if (req.session.user && req.session.user.user_id === user_id) {
+      delete req.session.user;
+    }
   });
 };
 

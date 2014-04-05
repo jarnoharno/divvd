@@ -1,11 +1,12 @@
-var crypto = require('crypto');
 var common = require('./common');
-var auth = require('../lib/auth');
 var user = require('../dao/user');
 var session = require('../lib/session');
 
 // req.session.user // user logged in
 // req.params.user // requested user
+
+// these error handles suck. we should extend the whole
+// router to use promises so that we could handle errors at a single point
 
 // GET /api/account
 //
@@ -21,7 +22,8 @@ exports.account = function(req, res) {
   session.current_user(req).
   then(function(usr) {
     res.json(usr);
-  });
+  }).
+  catch(common.handle(res));
 };
 
 // GET /api/logout
@@ -39,7 +41,8 @@ exports.logout = function(req, res) {
   then(function(usr) {
     session.delete_current(req);
     res.json(usr);
-  });
+  }).
+  catch(common.handle(res));
 };
 
 // POST /api/login
@@ -57,9 +60,10 @@ exports.logout = function(req, res) {
 exports.login = function(req, res) {
   user.find_username_and_password(req.body).
   then(function(usr) {
-    req.session.user = usr;
+      req.session.user = usr;
     res.json(usr);
-  });
+  }).
+  catch(common.handle(res));
 };
 
 // POST /api/signup
@@ -79,7 +83,8 @@ exports.signup = function(req, res) {
   then(function(usr) {
     req.session.user = usr;
     res.json(usr);
-  });
+  }).
+  catch(common.handle(res));
 };
 
 // DELETE /api/account
@@ -96,10 +101,13 @@ exports.signup = function(req, res) {
 exports.delete_account = function(req, res) {
   session.current_user(req).
   then(function(usr) {
-    session.delete_current(req);
     return user.delete(usr.user_id).
+    then(function() {
+      return session.delete(req, usr.user_id);
+    }).
     then(function() {
       res.json(usr);
     });
-  });
+  }).
+  catch(common.handle(res));
 };

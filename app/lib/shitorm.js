@@ -16,6 +16,12 @@ function orm(obj) {
     return new obj.constructor(result.rows[0]);
   }
 
+  function construct_all(result) {
+    return result.rows.map(function(row) {
+      return new obj.constructor(row);
+    });
+  }
+
   function check_empty(result) {
     if (result.rowCount == 0) {
       throw new Hox(400, obj.table + ' not found');
@@ -51,6 +57,13 @@ function orm(obj) {
     return db.query(query, [pk]).
     then(check_empty).
     then(construct);
+  };
+
+  dao.all = function(db) {
+    db = db || qdb;
+    var query = 'select ' + obj.all_string + ' from "' + obj.table + '";';
+    return db.query(query).
+    then(construct_all);
   };
 
   dao.find = function(pk, db) {

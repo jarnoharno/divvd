@@ -1,5 +1,4 @@
 var User = require('../models/user');
-var db = require('../lib/qdb');
 var crypt = require('../lib/qcrypt');
 var Hox = require('../lib/hox');
 var qdb = require('../lib/qdb');
@@ -22,6 +21,10 @@ dao.create = function(body, db) {
   then(construct_user);
 };
 
+function not_found() {
+  throw new Hox(401, 'username and password do not match');
+}
+
 dao.find_username_and_password = function(body, db) {
   db = db || qdb;
   return db.query('select username, role, user_id, hash, salt from "user" where username = $1;',
@@ -42,10 +45,6 @@ dao.find_username_and_password = function(body, db) {
   });
 };
 
-function not_found() {
-  throw new Hox(401, 'username and password do not match');
-}
-
 dao.find_by_ledger_id = function(ledger_id, db) {
   db = db || qdb;
   return db.query('select username, role, user_id from "user" natural join owner where ledger_id = $1;',
@@ -57,7 +56,8 @@ dao.find_by_ledger_id = function(ledger_id, db) {
   });
 };
 
-dao.find_username = function(username) {
+dao.find_username = function(username, db) {
+  db = db || qdb;
   return db.query('select username, role, user_id from "user" where username = $1 limit 1;',
       [username]).
   then(construct_user);
@@ -77,4 +77,5 @@ var orm = shitorm({
 
 dao.delete = orm.delete;
 dao.update = orm.update;
+dao.all = orm.all;
 dao.find = orm.find;

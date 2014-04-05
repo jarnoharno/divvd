@@ -78,13 +78,15 @@ db.client = function(procedure) {
   if (!url) {
     return Promise.reject('database unitialized');
   }
-  var clientDone = function() {};
+  var client_done = function() {};
   return Promise.promisify(pg.connect.bind(pg))(url).
   spread(function(client, done) {
     // this ain't pretty
-    clientDone = done;
+    client_done = done;
     return Promise.promisify(client.query.bind(client));
   }).
   then(procedure).
-  finally(clientDone);
+  finally(function() {
+    client_done();
+  });
 };

@@ -53,27 +53,11 @@ common.require_authentication = function(req, res, next) {
   then(function(usr) {
     req.session.user = usr;
     next();
-  });
+  }).
+  catch(common.handle(res));
 };
 
-common.requireAuthCustom = function(req, res, auth_hidden) {
-  res.statusCode = 401;
-  // Browsers will only generate default auth dialog when WWW-Authenticate
-  // method is either 'Basic' or 'Digest'. From web clients we can suppress
-  // this by attaching ?error=hidden querystring to requests.
-  if (auth_hidden) {
-    res.setHeader('WWW-Authenticate', 'Custom realm="Authorization Required"');
-  } else {
-    res.setHeader('WWW-Authenticate', 'Basic realm="Authorization Required"');
-  }
-  res.json({ message: 'unauthorized' });
-};
-
-common.requireAuth = function(req, res) {
-  exports.requireAuthCustom(req, res, req.query && req.query.auth === 'hidden');
-};
-
-common.isLogged = function(req) {
+common.is_logged = function(req) {
   return !!req.session.user;
 };
 
@@ -85,8 +69,12 @@ common.error = function(res, err) {
 common.handle = function(res, hidden_auth) {
   return function(err) {
     if (err instanceof Hox) {
+      if (err.code == 500) {
+        console.error(err.stack);
+      }
       err.send(res, hidden_auth);
     } else {
+      console.error(err.stack);
       res.json(500, { message: "server error" });
     }
   }

@@ -8,6 +8,7 @@ var merge = require('../lib/merge');
 var shitorm = require('../lib/shitorm');
 var util = require('./util');
 var extend = require('../lib/extend');
+var qdb = require('../lib/qdb');
 
 var dao = module.exports = {};
 
@@ -25,8 +26,8 @@ var dao = module.exports = {};
 //
 // return () -> Promise Ledger
 
-dao.create = function(props, qdb) {
-  qdb = qdb || require('../lib/qdb');
+dao.create = function(props, db) {
+  db = db || qdb;
 
   return qdb.transaction(function(query) {
 
@@ -88,7 +89,7 @@ dao.create = function(props, qdb) {
 };
 
 dao.find = function(ledger_id, db) {
-  db = db || require('../lib/qdb');
+  db = db || qdb;
   return db.transaction(function(query) {
     var q = { query: query };
     return Promise.bind(new Ledger({ ledger_id: ledger_id })).
@@ -132,7 +133,7 @@ dao.find = function(ledger_id, db) {
 };
 
 dao.find_by_user_id = function(user_id, db) {
-  db = db || require('../lib/qdb');
+  db = db || qdb;
   return db.query('select title, total_currency_id, ledger_id from ledger natural join ledger_settings natural join owner where user_id = $1;',
       [user_id]).
   then(function(result) {
@@ -158,8 +159,8 @@ dao.update = orm.update;
 
 // private
 
-function insert_ledger(title, qdb) {
-  return qdb.query('insert into ledger (title) values ($1) returning ledger_id;',
+function insert_ledger(title, db) {
+  return db.query('insert into ledger (title) values ($1) returning ledger_id;',
       [title]).
   then(util.first_row).
   then(function(row) {
@@ -167,19 +168,20 @@ function insert_ledger(title, qdb) {
   });
 }
 
-function insert_owner(user_id, ledger_id, qdb) {
-  return qdb.query('insert into owner (user_id, ledger_id) values ($1, $2);',
+function insert_owner(user_id, ledger_id, db) {
+  return db.query('insert into owner (user_id, ledger_id) values ($1, $2);',
       [user_id, ledger_id]);
 }
 
-function insert_ledger_settings(ledger_id, total_currency_id, qdb) {
-  return qdb.query('insert into ledger_settings (ledger_id, total_currency_id) values ($1, $2);',
+function insert_ledger_settings(ledger_id, total_currency_id, db) {
+  return db.query('insert into ledger_settings (ledger_id, total_currency_id) values ($1, $2);',
       [ledger_id, total_currency_id]);
 }
 
 function select_ledger(ledger_id, db) {
   return db.query('select title, total_currency_id, ledger_id from ledger natural join ledger_settings where ledger_id = $1 limit 1;',
       [ledger_id]).
+  then(util.check_empty).
   then(util.first_row).
   then(function(row) {
     return new Ledger(row);

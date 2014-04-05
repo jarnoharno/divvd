@@ -1,8 +1,28 @@
-var crypto = require('crypto');
-var db = require('../lib/db');
 var common = require('./common');
 var colors = require('colors');
 var array = require('../lib/array');
+var session = require('../lib/session');
+var ledger = require('../dao/ledger');
+
+// GET /api/ledgers
+//
+// Return all ledgers owned by current user
+//
+// \return [{
+//  title:string
+//  total_currency_id:integer
+//  ledger_id:integer
+// }]
+exports.ledgers = function(req, res) {
+  session.current_user(req).
+  then(function(usr) {
+    return ledger.find_by_user_id(usr.user_id);
+  }).
+  then(function(ledgers) {
+    res.json(ledgers);
+  }).
+  catch(common.handle(res));
+};
 
 // GET /api/ledgers/:ledgerId
 //
@@ -19,68 +39,30 @@ var array = require('../lib/array');
 //  ledger_id:integer
 // }
 
-// this could be optimized by returning 'not found' earlier
 exports.ledger = function(req, res) {
-  if (req.session.user) {
-    // ledger data is already in request parameters, so we only need to figure
-    // out if login user is authenticated to get the requested ledger data
-    db.query('select username, user_id from ledger natural join owner natural join "user" where ledger_id = $1;',
-        [req.params.ledger.ledger_id],
-        function(err, result) {
-      if (err) {
-        console.error(__filename+':ledger: failed to load ledger owners');
-        res.json(500, { message: 'server error' });
-      } else {
-        for (var i = 0; i < result.rowCount; ++i) {
-          if (result.rows[i].user_id == req.session.user.user_id) {
-            req.params.ledger.owners = result.rows;
-            res.json(req.params.ledger.owners);
-            return;
-          }
-        }
-        // Ledger is not found or current user is unauthorized.
-        // In either case return 'ledger not found'.
-        res.json(404, { message: 'ledger not found' });
-      }
-    });
-  } else {
-    common.requireAuth(req, res);
-  }
-}
-
-// GET /api/ledgers
-//
-// Returns all ledgers in the system.
-//
-// \return [{
-//  title:string
-//  currency_id:integer
-//  ledger_id:integer
-// }]
-
-exports.ledgers = function(req, res) {
-  if (req.session.user && req.session.user.role === 'debug') {
-    db.query('select title, currency_id, ledger_id from ledger;',
-        function(err, result) {
-      if (err) {
-        console.error(__filename+':ledgers: failed to load ledgers');
-        res.json(500, { message: 'server error' });
-      } else {
-        res.json(result.rows);
-      }
-    });
-  } else {
-    common.requireAuth(req, res);
-  }
-}
+  session.authorize_spoof(req, function(me) {
+    return  me.role.match(/debug|admin/) ||
+            req.params.ledger.owners.reduce(function(prev, owner) {
+              return prev || owner.user_id === me.user_id;
+            }, false);
+  }).
+  then(function() {
+    res.json(req.params.ledger);
+  }).
+  catch(common.handle(res));
+};
 
 // POST /api/ledgers
 //
-// Creates a new ledger.
+// Creates a new ledger. Admin can create new ledger
+// for anyone, other roles only for themselves.
 //
 // \post_param title:string                   (default:"New ledger")
-// \post_param currency_id:integer            (default:1)
-// \post_param owners: [{ user_id:integer }]  (default:[<current user_id>])
+// \post_param total_currency: {
+//   code:string
+//   rate:number
+// }
+// \post_param user_id:                       (default: <current user>)
 //
 // \return {
 //  title:string
@@ -94,6 +76,7 @@ exports.ledgers = function(req, res) {
 
 // maybe defaults should be defined only at the database level?
 exports.create_ledger = function(req, res) {
+  
   if (!req.session.user) {
     return common.requireAuth(req, res);
   }
@@ -200,40 +183,15 @@ exports.create_ledger = function(req, res) {
   });
 }
 
-exports.ledgers = function(req, res) {
-  if (req.session.user && req.session.user.role === 'debug') {
-    db.query('select title, currency_id, ledger_id from ledger;',
-        function(err, result) {
-      if (err) {
-        console.error(__filename+':ledgers: failed to load ledgers');
-        res.json(500, { message: 'server error' });
-      } else {
-        res.json(result.rows);
-      }
-    });
-  } else {
-    common.requireAuth(req, res);
-  }
-}
-
 // Parses :ledgerId GET parameter
+// we don't need the full ledger object each time but this is just easier
 
 exports.param = {};
 exports.param.ledger = function(req, res, next, id) {
-  db.query('select title, currency_id, ledger_id from ledger where ledger_id = $1;',
-      [id], function(err, result) {
-    if (err) {
-      console.error(__filename+':param.ledger: failed to load ledger');
-      res.json(500, { message: 'server error' });
-    } else if (result.rowCount > 0) {
-      req.params.ledger = result.rows[0];
-    } else {
-      // ledger not found
-    }
+  ledger.find(id).
+  then(function(ledger) {
+    req.params.ledger = ledger;
     next();
-  });
-}
-
-
-
-
+  }).
+  catch(common.handle(res));
+};

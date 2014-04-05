@@ -22,6 +22,7 @@ util.check_empty = function(result) {
   if (result.rowCount == 0) {
     throw new Hox(404, 'not found');
   }
+  return result;
 };
 
 util.single_row_query = function(query) {
