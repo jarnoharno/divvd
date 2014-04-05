@@ -7,15 +7,16 @@ util.first_row = function(result) {
 };
 
 util.pg_error = function(err) {
-  switch (parseInt(err.cause.code)) {
-    case 23503: // foreign key violation
-      throw new Hox(400, err.cause.detail);
-    case 23505: // unique violation
-      throw new Hox(400,
-        err.cause.detail.match(/^Key \(([^)]*)\)/)[1] + ' already exists');
-    default:
-      throw err;
+  if (err.cause && err.cause.code) {
+    switch (parseInt(err.cause.code)) {
+      case 23503: // foreign key violation
+        throw new Hox(400, err.cause.detail);
+      case 23505: // unique violation
+        throw new Hox(400,
+          err.cause.detail.match(/^Key \(([^)]*)\)/)[1] + ' already exists');
+    }
   }
+  throw err;
 };
 
 util.check_empty = function(result) {

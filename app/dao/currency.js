@@ -25,7 +25,7 @@ function unique_violation(err) {
 // all methods return a Currency
 
 dao.create = function(props, db) {
-  db = db || qdb
+  db = db || qdb;
   return db.query('insert into currency (code, rate, ledger_id) values ($1, $2, $3) returning code, rate, ledger_id, currency_id;',
       [props.code, props.rate, props.ledger_id]).
   error(unique_violation).

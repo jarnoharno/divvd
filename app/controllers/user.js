@@ -8,7 +8,28 @@ var ledger = require('../dao/ledger');
 // req.session.user: user logged in
 // req.params.user: requested user
 
-// GET /api/users/:userName
+// GET /api/users
+//
+// Returns all users in the system. Not available to users.
+//
+// \return [{
+//   username:string
+//   role:string
+//   user_id:integer
+// }]
+
+exports.users = function(req, res) {
+  session.authorize(req, function(me) {
+    return me.role.match(/debug|admin/);
+  }).then(function() {
+    return user.all();
+  }).then(function(users) {
+    res.json(users);
+  }).
+  catch(common.handle(res));
+}
+
+// GET /api/users/:user
 //
 // Returns the requested user information.
 //
@@ -26,6 +47,33 @@ exports.user = function(req, res) {
   }).
   then(function() {
     res.json(req.params.user);
+  }).
+  catch(common.handle(res));
+}
+
+// DELETE /api/users/:user
+//
+// Remove user from the system and all sessions
+// associated with the user. Not available to debug users.
+//
+// \return {
+//   username:string
+//   role:string
+// }
+
+exports.delete = function(req, res) {
+  session.authorize_spoof(req, function(me) {
+    return  me.user_id === req.params.user.user_id ||
+            me.role.match(/admin/);
+  }).
+  then(function() {
+    return user.delete(req.params.user.user_id);
+  }).
+  then(function(usr) {
+    return session.delete(req, usr.user_id).
+    then(function() {
+      res.json(usr);
+    });
   }).
   catch(common.handle(res));
 }
@@ -51,53 +99,6 @@ exports.ledgers = function(req, res) {
   }).
   then(function(ledgers) {
     res.json(ledgers);
-  }).
-  catch(common.handle(res));
-}
-
-// GET /api/users
-//
-// Returns all users in the system. Not available to users.
-//
-// \return [{
-//   username:string
-//   role:string
-//   user_id:integer
-// }]
-
-exports.users = function(req, res) {
-  session.authorize(req, function(me) {
-    return me.role.match(/debug|admin/);
-  }).then(function() {
-    return user.all();
-  }).then(function(users) {
-    res.json(users);
-  }).
-  catch(common.handle(res));
-}
-
-// DELETE /api/users/:userId
-//
-// Remove user from the system and all sessions
-// associated with the user. Not available to debug users.
-//
-// \return {
-//   username:string
-//   role:string
-// }
-exports.delete = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.user_id === req.params.user.user_id ||
-            me.role.match(/admin/);
-  }).
-  then(function() {
-    return user.delete(req.params.user.user_id);
-  }).
-  then(function(usr) {
-    return session.delete(req, usr.user_id).
-    then(function() {
-      res.json(usr);
-    });
   }).
   catch(common.handle(res));
 }

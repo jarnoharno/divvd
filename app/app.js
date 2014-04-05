@@ -5,6 +5,8 @@ var redirect  = require('./lib/redirect');
 var user      = require('./controllers/user');
 var account   = require('./controllers/account');
 var ledger    = require('./controllers/ledger');
+//var currency  = require('./controllers/currency');
+//var person    = require('./controllers/person');
 var common    = require('./controllers/common');
 var db        = require('./lib/qdb');
 
@@ -23,11 +25,12 @@ app.use(express.favicon());
 app.use(express.compress());
 app.use(express.static(path.join(__dirname, 'public/nonsecure')));
 
-// secure connection required from this line on
+// secure connection required from here on
+
 app.use(redirect(process.env.SSL_PORT || 443));
 app.use(express.json());
 app.use(function(err, req, res, next) {
-  // invalid json
+  // invalid json handling
   res.json(400, { message: err.toString() });
 });
 app.use(express.urlencoded());
@@ -43,30 +46,51 @@ app.use(app.router);
 // basic http authentication is not accepted. the reason for this is that
 // we don't want web clients to authenticate automatically by sending
 // credentials with http auth in case they have visited the api pages.
-app.get('/api/account', account.account);
-app.post('/api/login', account.login);
-app.get('/api/logout', account.logout);
-app.post('/api/signup', account.signup);
-app.delete('/api/account', account.delete_account);
+
+app.get     ('/api/account',                    account.account);
+app.post    ('/api/login',                      account.login);
+app.get     ('/api/logout',                     account.logout);
+app.post    ('/api/signup',                     account.signup);
+app.delete  ('/api/account',                    account.delete_account);
 
 // all /api/ requests from here on can be authenticated with basic http
 // authentication
-app.all(/^\/api\//, common.require_authentication);
-app.param('user', user.param.user);
-app.get('/api/users', user.users);
-app.get('/api/users/:user', user.user);
-app.get('/api/users/:user/ledgers', user.ledgers);
-app.delete('/api/users/:user', user.delete);
 
-app.param('ledger', ledger.param.ledger);
-app.post('/api/ledgers', ledger.create_ledger);
-app.get('/api/ledgers', ledger.ledgers);
-app.get('/api/ledgers/:ledger', ledger.ledger);
+app.all     (/^\/api\//,                        common.require_authentication);
+app.param   ('user',                            user.param.user);
+app.get     ('/api/users',                      user.users);
+app.get     ('/api/users/:user',                user.user);
+app.delete  ('/api/users/:user',                user.delete);
+app.get     ('/api/users/:user/ledgers',        user.ledgers);
 
+app.param   ('ledger',                          ledger.param.ledger);
+app.get     ('/api/ledgers',                    ledger.ledgers);
+app.post    ('/api/ledgers',                    ledger.create);
+app.get     ('/api/ledgers/:ledger',            ledger.ledger);
+app.delete  ('/api/ledgers/:ledger',            ledger.delete);
+app.put     ('/api/ledgers/:ledger',            ledger.update);
+app.get     ('/api/ledgers/:ledger/currencies', ledger.currencies);
+app.post    ('/api/ledgers/:ledger/currencies', ledger.add_currency);
+app.get     ('/api/ledgers/:ledger/persons',    ledger.persons);
+app.post    ('/api/ledgers/:ledger/persons',    ledger.add_person);
+/*
+app.param   ('currency',                        currency.param);
+app.get     ('/api/currencies/:currency',       currency.get);
+app.delete  ('/api/currencies/:currency',       currency.delete);
+app.put     ('/api/currencies/:currency',       currency.put);
+
+app.param   ('person',                          person.param);
+app.get     ('/api/currencies/:person',         person.get);
+app.delete  ('/api/currencies/:person',         person.delete);
+app.put     ('/api/currencies/:person',         person.put);
+*/
 // static secure content
+
 app.use(express.static(path.join(__dirname, 'public/secure')));
+
 // serve root for all unrecognized routes
 // this is necessary for angular routing to work
+
 app.use(function(req, res, next) {
   if (req.method == 'GET') {
     res.sendfile(path.join(__dirname, 'public/secure/index.html'));
@@ -75,14 +99,17 @@ app.use(function(req, res, next) {
     res.json(405, { message: 'not allowed' });
   }
 });
+
+// handle errors thrown outside controllers (which should be handled with
+// promises)
+
 app.use(function(err, req, res, next) {
-  // error happened somewhere else than inside controllers which should always
-  // use promises
   console.error('express error handler');
   common.handle(res)(err);
 });
 
 // launch server
+
 http.createServer(app).listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
 });

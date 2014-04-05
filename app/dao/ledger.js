@@ -29,7 +29,7 @@ var dao = module.exports = {};
 dao.create = function(props, db) {
   db = db || qdb;
 
-  return qdb.transaction(function(query) {
+  return db.transaction(function(query) {
 
     // enable transaction
     var q = { query: query };
@@ -53,6 +53,8 @@ dao.create = function(props, db) {
     then(function(currency) {
       this.total_currency_id = currency.currency_id;
       this.currencies = [currency];
+      console.log('HOLA');
+      console.log(this);
     }).
 
     // insert settings
@@ -104,7 +106,7 @@ dao.find = function(ledger_id, db) {
 
     // select owners
     then(function() {
-      return user.find_by_ledger_id(ledger_id, db);
+      return user.find_by_ledger_id(ledger_id, q);
     }).
     then(function(users) {
       this.owners = users;
@@ -112,7 +114,7 @@ dao.find = function(ledger_id, db) {
 
     // select persons
     then(function() {
-      return person.find_by_ledger_id(ledger_id, db);
+      return person.find_by_ledger_id(ledger_id, q);
     }).
     then(function(persons) {
       this.persons = persons;
@@ -120,7 +122,7 @@ dao.find = function(ledger_id, db) {
 
     // select currencies
     then(function() {
-      return currency.find_by_ledger_id(ledger_id, db);
+      return currency.find_by_ledger_id(ledger_id, q);
     }).
     then(function(currencies) {
       this.currencies = currencies;
@@ -143,6 +145,42 @@ dao.find_by_user_id = function(user_id, db) {
   });
 }
 
+// props = {
+//  title:string
+//  total_currency_id:integer
+// }
+
+// we might be able to do updates with pg views
+
+dao.update = function(ledger_id, props, db) {
+  db = db || qdb;
+  return db.transaction(function(query) {
+    var ret = new Ledger(props);
+    ret.ledger_id = ledger_id;
+    var p = Promise.resolve();
+    if (props.title) {
+      p.then(function() {
+        return query('update ledger set title = $1 where ledger_id = $2 returning title;',
+            [props.title, ledger_id]).
+        catch(util.pg_error).
+        then(util.first_row).
+        then(function(row) {
+          ret.title = row.title;
+        });
+      });
+    }
+    if (props.total_currency_id) {
+      p.then(function() {
+        return query('update ledger_settings set total_currency_id = $1 where ledger_id = $2;',
+            [props.total_currency_id, ledger_id]);
+      });
+    }
+    return p.then(function() {
+      return ret;
+    });
+  });
+};
+
 // automatically generated stuff
 
 var orm = shitorm({
@@ -155,7 +193,6 @@ var orm = shitorm({
 });
 
 dao.delete = orm.delete;
-dao.update = orm.update;
 
 // private
 

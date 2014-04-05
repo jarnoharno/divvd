@@ -8,18 +8,38 @@ var qdb = require('../lib/qdb');
 
 var dao = module.exports = {};
 
-function insert_person(props, qdb) {
+// if currency_id is not supplied, total_currency_id from ledger is used
+// if user_id is deduced from name if not given explicitly
+
+// this could probably be nicer...
+
+function insert_person(props, db) {
   if (props.user_id) {
     if (props.name) {
-      return qdb.query('insert into person (name, user_id, currency_id, ledger_id) values ($1, $2, $3, $4) returning name, user_id, currency_id, ledger_id, person_id;',
-          [props.name, props.user_id, props.currency_id, props.ledger_id]);
+      if (props.currency_id) {
+        return db.query('insert into person (name, user_id, currency_id, ledger_id) values ($1, $2, $3, $4) returning name, user_id, currency_id, ledger_id, person_id;',
+            [props.name, props.user_id, props.currency_id, props.ledger_id]);
+      } else {
+        return db.query('insert into person (name, user_id, currency_id, ledger_id) select $1, $2, total_currency_id currency_id, $3 from ledger_settings where ledger_id = $3 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
+            [props.name, props.user_id, props.ledger_id]);
+      }
     } else {
-      return qdb.query('insert into person (name, user_id, currency_id, ledger_id) select username, $1, $2, $3 from "user" where user_id = $1 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
-          [props.user_id, props.currency_id, props.ledger_id]);
+      if (props.currency_id) {
+        return db.query('insert into person (name, user_id, currency_id, ledger_id) select username, $1, $2, $3 from "user" where user_id = $1 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
+            [props.user_id, props.currency_id, props.ledger_id]);
+      } else {
+        return db.query('insert into person (name, user_id, currency_id, ledger_id) select username, $1, total_currency_id currency_id, $2 from "user" join ledger_settings on user_id = $1 and ledger_id = $2 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
+            [props.user_id, props.ledger_id]);
+      }
     }
   } else if (props.name) {
-    return qdb.query('insert into person (name, currency_id, ledger_id) values ($1, $2, $3) returning name, user_id, currency_id, ledger_id, person_id;',
-        [props.name, props.currency_id, props.ledger_id]);
+    if (props.currency_id) {
+      return db.query('insert into person (name, currency_id, ledger_id) values ($1, $2, $3) returning name, user_id, currency_id, ledger_id, person_id;',
+          [props.name, props.currency_id, props.ledger_id]);
+    } else {
+      return db.query('insert into person (name, currency_id, ledger_id) select $1, total_currency_id currency_id, $2 from ledger_settings where ledger_id = $2 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
+          [props.name, props.ledger_id]);
+    }
   } else {
     return Promise.reject(new Hox(400, 'no name or user_id given'));
   }
@@ -27,7 +47,8 @@ function insert_person(props, qdb) {
 
 dao.create = function(props, db) {
   db = db || qdb;
-  return insert_person(props, qdb).
+  return insert_person(props, db).
+  catch(util.pg_error).
   then(util.first_row).
   then(function(row) {
     return new Person(merge(props, row));
