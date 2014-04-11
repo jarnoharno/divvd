@@ -1,14 +1,17 @@
-var express   = require('express');
-var http      = require('http');
-var path      = require('path');
-var redirect  = require('./lib/redirect');
-var user      = require('./controllers/user');
-var account   = require('./controllers/account');
-var ledger    = require('./controllers/ledger');
-var currency  = require('./controllers/currency');
-var person    = require('./controllers/person');
-var common    = require('./controllers/common');
-var db        = require('./lib/qdb');
+var express     = require('express');
+var http        = require('http');
+var path        = require('path');
+var redirect    = require('./lib/redirect');
+var user        = require('./controllers/user');
+var account     = require('./controllers/account');
+var ledger      = require('./controllers/ledger');
+var currency    = require('./controllers/currency');
+var person      = require('./controllers/person');
+var transaction = require('./controllers/transaction');
+var participant = require('./controllers/participant');
+var amount      = require('./controllers/amount');
+var common      = require('./controllers/common');
+var db          = require('./lib/qdb');
 
 var app = express();
 
@@ -35,7 +38,14 @@ app.use(function(err, req, res, next) {
 });
 app.use(express.urlencoded());
 app.use(express.cookieParser(process.env.SECRET || 'mydirtylittlesecret'));
-app.use(express.session({cookie: { secure: true }, proxy: true}));
+app.use(express.session({
+  cookie: {
+    httpOnly: true,
+    secure: true
+  },
+  key: 'sid',
+  proxy: true
+}));
 
 app.use(app.router);
 
@@ -73,10 +83,8 @@ app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
 app.post    ('/api/ledgers/:ledger/currencies',   ledger.add_currency);
 app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
 app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
-/*
 app.get     ('/api/ledgers/:ledger/transactions', ledger.transactions);
 app.post    ('/api/ledgers/:ledger/transactions', ledger.add_transaction);
-*/
 
 app.param   ('currency',                          currency.param);
 app.get     ('/api/currencies/:currency',         currency.get);
@@ -88,26 +96,24 @@ app.get     ('/api/persons/:person',              person.get);
 app.delete  ('/api/persons/:person',              person.delete);
 app.put     ('/api/persons/:person',              person.put);
 
-/*
-app.param   ('ta',                                transaction.param);
-app.get     ('/api/transactions/:ta',             transaction.get);
-app.delete  ('/api/transactions/:ta',             transaction.delete);
-app.put     ('/api/transactions/:ta',             transaction.put);
-app.get     ('/api/transactions/:ta/participants  transactions.participants);
-app.post    ('/api/transactions/:ta/participants  transactions.add_participant);
+app.param   ('t',                                 transaction.param);
+app.get     ('/api/transactions/:t',              transaction.get);
+app.delete  ('/api/transactions/:t',              transaction.delete);
+app.put     ('/api/transactions/:t',              transaction.put);
+app.get     ('/api/transactions/:t/participants', transaction.participants);
+app.post    ('/api/transactions/:t/participants', transaction.add_participant);
 
 app.param   ('p',                                 participant.param);
 app.get     ('/api/participants/:p',              participant.get);
 app.delete  ('/api/participants/:p',              participant.delete);
 app.put     ('/api/participants/:p',              participant.put);
-app.get     ('/api/participants/:p/amounts        participant.amounts);
-app.post    ('/api/participants/:p/amounts        participant.add_amount);
+app.get     ('/api/participants/:p/amounts',      participant.amounts);
+app.post    ('/api/participants/:p/amounts',      participant.add_amount);
 
 app.param   ('amount',                            amount.param);
 app.get     ('/api/amounts/:amount',              amount.get);
 app.delete  ('/api/amounts/:amount',              amount.delete);
 app.put     ('/api/amounts/:amount',              amount.put);
-*/
 
 // static secure content
 

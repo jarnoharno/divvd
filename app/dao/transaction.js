@@ -29,9 +29,40 @@ var orm = shitorm({
   constructor: Transaction
 });
 
-dao.create = orm.create;
+dao.create = function(props, db) {
+  db = db || qdb;
+  var currency_id = props.currency_id || null;
+  return db.transaction(function(db) {
+    return orm.create(props, db).
+    then(function(transaction) {
+
+      // create new participant for every person in the ledger
+
+      return db.query('select person_id from person where ledger_id = $1;',
+          [transaction.ledger_id]).
+      then(function(result) {
+        return Promise.all(result.rows.map(function(row) {
+          return participant.create({
+            credit_currency_id: currency_id,
+            debit_currency_id: currency_id,
+            shared_debt_currency_id: currency_id,
+            balance_currency_id: currency_id,
+            transaction_id: transaction.transaction_id,
+            person_id: row.person_id
+          }, db);
+        }));
+      }).
+      then(function(participants) {
+        transaction.participants = participants;
+        return transaction;
+      });
+    });
+  });
+};
+
 dao.update = orm.update;
 dao.delete = orm.delete;
+
 dao.find_by_ledger_id = function(ledger_id, db) {
   return orm.find_by('ledger_id', ledger_id, db);
 };

@@ -109,7 +109,7 @@ $(BUILD_DB)/PG_VERSION: | $(BUILD_DB)
 	initdb -D $(BUILD_DB) --encoding=UTF8 --locale=en_US.UTF8 -U postgres
 	sed -i "s/#log_statement = [^#]*/log_statement =     'all' /g" \
 		$(BUILD_DB)/postgresql.conf
-	sed -i "s/#log_line_prefix = [^#]*/log_line_prefix = '<%c:%x:%v>' /g" \
+	sed -i "s/#log_line_prefix = [^#]*/log_line_prefix = '<%c:%v>' /g" \
 		$(BUILD_DB)/postgresql.conf
 $(BUILD_DB):
 	mkdir -p $(BUILD_DB)

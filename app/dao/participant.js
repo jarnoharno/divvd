@@ -20,6 +20,7 @@ var orm = shitorm({
     'credit_currency_id',
     'debit_currency_id',
     'shared_debt_currency_id',
+    'balance_currency_id',
     'transaction_id',
     'person_id',
   ],

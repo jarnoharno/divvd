@@ -154,6 +154,10 @@ create table participant (
     -- null
     references currency on delete set null
     ,
+  balance_currency_id integer
+    -- null
+    references currency on delete set null
+    ,
   transaction_id integer
     not null
     references transaction on delete cascade

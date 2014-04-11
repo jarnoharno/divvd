@@ -31,8 +31,8 @@ insert into transaction
   (description, "date", "type", location, transfer, ledger_id, currency_id)
   values ('beer', '2014-03-22T22:41:24+0200', 'beer', 'molotov', false, 1, 1);
 insert into participant (share_debt, credit_currency_id, debit_currency_id,
-  shared_debt_currency_id, transaction_id, person_id)
-  values (true, 1, 1, 1, 1, 1);
+  shared_debt_currency_id, balance_currency_id, transaction_id, person_id)
+  values (true, 1, 1, 1, 1, 1, 1);
 insert into amount (amount, currency_id, participant_id)
   values (4.5, 1, 1);
 

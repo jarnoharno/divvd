@@ -63,8 +63,6 @@ function orm(obj) {
     var keys_string = keys.join(', ');
     var ph_string = placeholder_string(keys.length);
 
-    console.log(vals);
-
     var query =
         'insert into "' + obj.table + '" (' + keys_string + ') values (' +
         ph_string + ') returning ' + obj.all_string + ';';

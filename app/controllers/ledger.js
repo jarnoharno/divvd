@@ -5,6 +5,7 @@ var session = require('../lib/session');
 var ledger = require('../dao/ledger');
 var currency = require('../dao/currency');
 var person = require('../dao/person');
+var transaction = require('../dao/transaction');
 var jsonschema = require('jsonschema');
 var deepmerge = require('../lib/deepmerge');
 var Promise = require('bluebird');
@@ -213,6 +214,9 @@ exports.update = function(req, res) {
   catch(common.handle(res));
 };
 
+// TODO credentials check
+// this could be taken from req.param.ledger!
+
 exports.currencies = function(req, res) {
   return currency.find_by_ledger_id(req.params.ledger.ledger_id).
   then(function(currencies) {
@@ -220,6 +224,9 @@ exports.currencies = function(req, res) {
   }).
   catch(common.handle(res));
 };
+
+// TODO credentials check
+// this could be taken from req.param.ledger!
 
 exports.persons = function(req, res) {
   return person.find_by_ledger_id(req.params.ledger.ledger_id).
@@ -309,6 +316,67 @@ exports.add_person = function(req, res) {
   }).
   then(function(person) {
     res.json(person);
+  }).
+  catch(common.handle(res));
+}
+
+exports.transactions = function(req, res) {
+  return transaction.find_by_ledger_id(req.params.ledger.ledger_id).
+  then(function(transactions) {
+    res.json(transactions);
+  }).
+  catch(common.handle(res));
+};
+
+var transaction_arg_schema = {
+  "id": "/transaction_arg",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "transfer": {
+      "type": "boolean"
+    },
+    "currency_id": {
+      "$ref": "/positive_integer"
+    }
+  }
+};
+
+exports.add_transaction = function(req, res) {
+  Promise.try(function() {
+    var arg = req.body;
+    if (!validate(arg, transaction_arg_schema)) {
+      throw new Hox(400, "unexpected parameters");
+    }
+
+    arg.ledger_id = req.params.ledger.ledger_id;
+    arg.currency_id = arg.currency_id || req.params.ledger.total_currency_id;
+
+    return session.authorize(req, function(me) {
+      return  me.role.match(/admin/) ||
+              req.params.ledger.owners.reduce(function(prev, owner) {
+                return prev || owner.user_id === me.user_id;
+              }, false);
+    }).
+    then(function() {
+      return transaction.create(arg);
+    });
+  }).
+  then(function(transaction) {
+    res.json(transaction);
   }).
   catch(common.handle(res));
 }
