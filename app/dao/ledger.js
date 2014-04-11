@@ -29,17 +29,14 @@ var dao = module.exports = {};
 dao.create = function(props, db) {
   db = db || qdb;
 
-  return db.transaction(function(query) {
-
-    // enable transaction
-    var q = { query: query };
+  return db.transaction(function(db) {
 
     // bind to-be-returned ledger
     return Promise.bind(new Ledger(props)).
 
     // insert ledger
     then(function() {
-      return insert_ledger(this.title, q);
+      return insert_ledger(this.title, db);
     }).
     then(function(ledger_id) {
       this.ledger_id = ledger_id;
@@ -48,28 +45,27 @@ dao.create = function(props, db) {
     // insert currency
     then(function() {
       return currency.create(
-        merge(props.total_currency, { ledger_id: this.ledger_id }), q);
+        merge(props.total_currency, { ledger_id: this.ledger_id }), db);
     }).
     then(function(currency) {
       this.total_currency_id = currency.currency_id;
       this.currencies = [currency];
-      console.log('HOLA');
       console.log(this);
     }).
 
     // insert settings
     then(function() {
-      return insert_ledger_settings(this.ledger_id, this.total_currency_id, q);
+      return insert_ledger_settings(this.ledger_id, this.total_currency_id, db);
     }).
 
     // insert owner
     then(function() {
-      return insert_owner(props.user_id, this.ledger_id, q);
+      return insert_owner(props.user_id, this.ledger_id, db);
     }).
 
     // insert person
     then(function() {
-      return user.find(props.user_id, q);
+      return user.find(props.user_id, db);
     }).
     then(function(user) {
       this.owners = [user];
@@ -78,7 +74,7 @@ dao.create = function(props, db) {
         user_id: user.user_id,
         currency_id: this.total_currency_id,
         ledger_id: this.ledger_id
-      }, q);
+      }, db);
     }).
     then(function(person) {
       this.persons = [person];
@@ -92,13 +88,12 @@ dao.create = function(props, db) {
 
 dao.find = function(ledger_id, db) {
   db = db || qdb;
-  return db.transaction(function(query) {
-    var q = { query: query };
+  return db.transaction(function(db) {
     return Promise.bind(new Ledger({ ledger_id: ledger_id })).
 
     // select ledger
     then(function() {
-      return select_ledger(ledger_id, q);
+      return select_ledger(ledger_id, db);
     }).
     then(function(ledger) {
       extend(this, ledger);
@@ -106,7 +101,7 @@ dao.find = function(ledger_id, db) {
 
     // select owners
     then(function() {
-      return user.find_by_ledger_id(ledger_id, q);
+      return user.find_by_ledger_id(ledger_id, db);
     }).
     then(function(users) {
       this.owners = users;
@@ -114,7 +109,7 @@ dao.find = function(ledger_id, db) {
 
     // select persons
     then(function() {
-      return person.find_by_ledger_id(ledger_id, q);
+      return person.find_by_ledger_id(ledger_id, db);
     }).
     then(function(persons) {
       this.persons = persons;
@@ -122,7 +117,7 @@ dao.find = function(ledger_id, db) {
 
     // select currencies
     then(function() {
-      return currency.find_by_ledger_id(ledger_id, q);
+      return currency.find_by_ledger_id(ledger_id, db);
     }).
     then(function(currencies) {
       this.currencies = currencies;
@@ -154,13 +149,13 @@ dao.find_by_user_id = function(user_id, db) {
 
 dao.update = function(ledger_id, props, db) {
   db = db || qdb;
-  return db.transaction(function(query) {
+  return db.transaction(function(db) {
     var ret = new Ledger(props);
     ret.ledger_id = ledger_id;
     var p = Promise.resolve();
     if (props.title) {
       p.then(function() {
-        return query('update ledger set title = $1 where ledger_id = $2 returning title;',
+        return db.query('update ledger set title = $1 where ledger_id = $2 returning title;',
             [props.title, ledger_id]).
         catch(util.pg_error).
         then(util.first_row).
@@ -171,7 +166,7 @@ dao.update = function(ledger_id, props, db) {
     }
     if (props.total_currency_id) {
       p.then(function() {
-        return query('update ledger_settings set total_currency_id = $1 where ledger_id = $2;',
+        return db.query('update ledger_settings set total_currency_id = $1 where ledger_id = $2;',
             [props.total_currency_id, ledger_id]);
       });
     }

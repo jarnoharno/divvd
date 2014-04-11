@@ -69,8 +69,7 @@ dao.find_by_ledger_id = function(ledger_id, db) {
 
 dao.find_with_owners = function(person_id, db) {
   db = db || qdb;
-  return db.transaction(function(query) {
-    db = { query: query };
+  return db.transaction(function(db) {
     return Promise.bind({}).
     then(function() {
       return dao.find(person_id, db);

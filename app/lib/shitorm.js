@@ -38,13 +38,38 @@ function orm(obj) {
     throw err;
   }
 
+  function values(obj) {
+    return Object.keys(obj).map(function(k) {
+      return obj[k];
+    });
+  }
+
+  function placeholder_string(length) {
+    if (length == 0) {
+      return '';
+    }
+    var ret = '$1';
+    for (var i = 1; i < length; ++i) {
+      ret += ', $' + (i + 1);
+    }
+    return ret;
+  }
+
   dao.create = function(props, db) {
     db = db || qdb;
+
+    var keys = Object.keys(props);
+    var vals = keys.map(function(k) { return props[k]; });
+    var keys_string = keys.join(', ');
+    var ph_string = placeholder_string(keys.length);
+
+    console.log(vals);
+
     var query =
-        'insert into "' + obj.table + '" (' + obj.props_string + ') values (' +
-        obj.props.map(function(v, i) { return '$' + (i + 1); }).join(', ') +
-        ') returning ' + obj.all_string + ';';
-    return db.query(query, props).
+        'insert into "' + obj.table + '" (' + keys_string + ') values (' +
+        ph_string + ') returning ' + obj.all_string + ';';
+
+    return db.query(query, vals).
     error(util.pg_error).
     then(construct);
   };
@@ -74,6 +99,15 @@ function orm(obj) {
     return db.query(query, [pk]).
     then(check_empty).
     then(construct);
+  };
+
+  dao.find_by = function(col, val, db) {
+    db = db || qdb;
+    var query =
+        'select ' + obj.all_string + ' from "' + obj.table + '" where ' +
+        col + ' = $1;';
+    return db.query(query, [val]).
+    then(construct_all);
   };
 
   dao.update = function(pk, props, db) {

@@ -26,6 +26,7 @@ create table "user" (
 
 create table ledger (
   title text
+    default 'New ledger'
     not null
     ,
   ledger_id serial
@@ -49,9 +50,11 @@ create table owner (
 
 create table currency (
   code text
+    default '€'
     not null
     ,
   rate numeric(16,8)
+    default 1.0
     check (rate > 0)
     not null
     ,
@@ -103,6 +106,7 @@ create table person (
 
 create table transaction (
   description text
+    default 'New transaction'
     not null
     ,
   "date" timestamp with time zone
@@ -166,6 +170,7 @@ create table participant (
 
 create table amount (
   amount numeric(16,2)
+    default 0.0
     not null
     ,
   currency_id integer

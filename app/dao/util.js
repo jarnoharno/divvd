@@ -9,11 +9,13 @@ util.first_row = function(result) {
 util.pg_error = function(err) {
   if (err.cause && err.cause.code) {
     switch (parseInt(err.cause.code)) {
-      case 23503: // foreign key violation
-        throw new Hox(400, err.cause.detail);
       case 23505: // unique violation
         throw new Hox(400,
           err.cause.detail.match(/^Key \(([^)]*)\)/)[1] + ' already exists');
+      case 23502: // not null constraint
+      case 23503: // foreign key constraint
+      default:
+        throw new Hox(400, err.cause.code + ": " + err.cause.detail);
     }
   }
   throw err;

@@ -49,9 +49,18 @@ db.query = function(queryString, data) {
 
 db.transaction = function(procedure) {
   return db.client(function(query) {
+
+    // mock db object with query/transaction-interface
+    var db = {
+      query: query,
+      transaction: function(cb) {
+        return cb(db);
+      }
+    };
+
     return query('begin;').
     then(function() {
-      return Promise.try(procedure.bind(null, query)).
+      return Promise.try(procedure.bind(null, db)).
       catch(function(err) {
         return query('rollback;').
         then(function() {

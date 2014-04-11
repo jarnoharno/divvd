@@ -1,10 +1,19 @@
-var Amount = require('../models/amount');
-var db = require('../lib/qdb');
+var Ledger = require('../models/ledger');
+var currency = require('./currency');
+var user = require('./user');
+var person = require('./person');
 var Hox = require('../lib/hox');
+var Promise = require('bluebird');
+var merge = require('../lib/merge');
+var shitorm = require('../lib/shitorm');
+var util = require('./util');
+var extend = require('../lib/extend');
+var qdb = require('../lib/qdb');
+var Amount = require('../models/amount');
 
 var dao = module.exports = {};
 
-var obj = {
+var orm = shitorm({
   props: [
     'amount',
     'currency_id',
@@ -12,90 +21,35 @@ var obj = {
   ],
   pk: 'amount_id',
   table: 'amount',
-  contructor: Amount
+  constructor: Amount
+});
+
+dao.create = orm.create;
+dao.update = orm.update;
+dao.delete = orm.delete;
+dao.find = orm.find;
+dao.find_by_participant_id = function(participant_id, db) {
+  db = db || qdb;
+  return orm.find_by('participant_id', participant_id, db);
 };
 
-obj.props_string = obj.props.join(', ');
-obj.all_string = obj.props_string + ', ' + obj.pk;
-obj.keys_filter = {};
-obj.props.forEach(function(v) { obj.keys_filter[v] = true; });
-
-function construct(result) {
-  return new obj.constructor(result.rows[0]);
-}
-
-function check_empty(result) {
-  console.log(result);
-  if (result.rowCount == 0) {
-    throw new Hox(400, obj.table + ' not found');
-  }
-  return result;
-}
-
-function unique_violation(err) {
-  if (err.cause.code == 23505) {
-    // postgresql unique_violation
-    throw new Hox(400, obj.table + ' already exists');
-  }
-  // unidentified error
-  throw err;
-}
-
-//
-
-dao.create = function(props) {
-  var query =
-      'insert into ' + obj.table + ' (' + obj.props_string + ') values (' +
-      obj.props.map(function(v, i) { return '$' + (i + 1); }).join(', ') +
-      ') returning ' + obj.all_string + ';';
-  console.log(query);
-  return db.query(query, props).
-  error(unique_violation).
-  then(construct);
-};
-
-dao.delete = function(pk) {
-  var query =
-      'delete from ' + obj.table + ' where ' + obj.pk + ' = $1 returning ' +
-      obj.all_string + ';'
-  return db.query(query, [pk]).
-  then(check_empty).
-  then(construct);
-};
-
-dao.find = function(pk) {
-  var query =
-      'select ' + obj.props_string + ' from ' + obj.table + ' where ' +
-      obj.pk + ' = $1 limit 1;';
-  return db.query(query, [pk]).
-  then(check_empty).
-  then(construct);
-};
-
-dao.update = function(pk, props) {
-
-  var keys = Object.keys(props).filter(function(k) {
-    return obj.keys_filter[k];
+dao.find_with_owners = function(amount_id, db) {
+  db = db || qdb;
+  return db.transaction(function(db) {
+    return Promise.bind({}).
+    then(function() {
+      return dao.find(amount_id, db);
+    }).
+    then(function(amount) {
+      this.amount = amount;
+      return db.query('select user_id from owner natural join transaction natural join participant where participant_id = $1;',
+          [amount.participant_id]);
+    }).
+    then(function(result) {
+      this.owners = result.rows.map(function(row) {
+        return row.user_id;
+      });
+      return this;
+    });
   });
-  var values = keys.map(function(k) {
-    return props[k];
-  });
-  values.push(pk);
-
-  // only keys that match to one of the keys in keys_filter will be
-  // concatenated in the query string
-
-  var query =
-    'update ' + obj.table + ' set ' +
-    keys.map(function(k, i) {
-      return k + ' = $' + (i + 1);
-    }).join(', ') +
-    ' where ' + obj.pk + ' = $' + (keys.length + 1) +
-    ' returning ' + obj.props_string + ';';
-
-  return db.query(query, values).
-  error(unique_violation).
-  then(check_empty).
-  then(construct);
 };
-
