@@ -1,0 +1,7 @@
+#!/bin/bash
+JAR=build/divvd.jar
+CMD="curl -v -k -b $JAR -c $JAR -H 'Content-Type: application/json' -X $1 \
+  https://localhost:4000$2 -d '$3'"
+echo $CMD
+eval $CMD
+echo

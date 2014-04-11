@@ -181,6 +181,17 @@ dao.update = function(ledger_id, props, db) {
   });
 };
 
+// \return [user_id]
+
+dao.find_owners = function(ledger_id, db) {
+  db = db || qdb;
+  return db.query('select user_id from owner where ledger_id = $1;',
+      [ledger_id]).
+  then(function(result) {
+    return result.rows;
+  });
+};
+
 // automatically generated stuff
 
 var orm = shitorm({

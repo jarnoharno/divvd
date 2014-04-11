@@ -9,6 +9,7 @@ var jsonschema = require('jsonschema');
 var deepmerge = require('../lib/deepmerge');
 var Promise = require('bluebird');
 var Hox = require('../lib/hox');
+var validate = require('../lib/validate');
 
 // GET /api/ledgers
 //
@@ -53,20 +54,6 @@ exports.ledgers = function(req, res) {
 //  ledger_id:integer
 // }
 
-var positive_integer_schema = {
-  "id": "/positive_integer",
-  "type": "integer",
-  "minimum": 0,
-  "exclusiveMinimum": true
-};
-
-var positive_number_schema = {
-  "id": "/positive_number",
-  "type": "number",
-  "minimum": 0,
-  "exclusiveMinimum": true
-};
-
 var ledger_arg_schema = {
   "id": "/ledger_param",
   "type": "object",
@@ -100,16 +87,10 @@ var ledger_arg_default = {
   }
 };
 
-var validator = new jsonschema.Validator();
-validator.addSchema(positive_integer_schema);
-validator.addSchema(positive_number_schema);
-
 // maybe defaults should be defined only at the database level?
 exports.create = function(req, res) {
   Promise.try(function() {
-    var v = validator.validate(req.body, ledger_arg_schema);
-    if (v.errors.length > 0) {
-      // too much information?
+    if (!validate(req.body, ledger_arg_schema)) {
       throw new Hox(400, "unexpected parameters");
     }
     var arg = deepmerge(ledger_arg_default, req.body);
@@ -213,8 +194,7 @@ var update_arg_schema = {
 
 exports.update = function(req, res) {
   Promise.try(function() {
-    var v = validator.validate(req.body, update_arg_schema);
-    if (v.errors.length > 0) {
+    if (!validate(req.body, update_arg_schema)) {
       throw new Hox(400, "unexpected parameters");
     }
     return session.authorize_spoof(req, function(me) {
@@ -270,8 +250,7 @@ var currency_arg_default = {
 
 exports.add_currency = function(req, res) {
   Promise.try(function() {
-    var v = validator.validate(req.body, currency_arg_schema);
-    if (v.errors.length > 0) {
+    if (!validate(req.body, currency_arg_schema)) {
       throw new Hox(400, "unexpected parameters");
     }
     var arg = deepmerge(currency_arg_default, req.body);
@@ -312,8 +291,7 @@ var person_arg_schema = {
 exports.add_person = function(req, res) {
   Promise.try(function() {
     var arg = req.body;
-    var v = validator.validate(arg, person_arg_schema);
-    if (v.errors.length > 0) {
+    if (!validate(arg, person_arg_schema)) {
       throw new Hox(400, "unexpected parameters");
     }
 

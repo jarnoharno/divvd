@@ -5,8 +5,8 @@ var redirect  = require('./lib/redirect');
 var user      = require('./controllers/user');
 var account   = require('./controllers/account');
 var ledger    = require('./controllers/ledger');
-//var currency  = require('./controllers/currency');
-//var person    = require('./controllers/person');
+var currency  = require('./controllers/currency');
+var person    = require('./controllers/person');
 var common    = require('./controllers/common');
 var db        = require('./lib/qdb');
 
@@ -47,43 +47,68 @@ app.use(app.router);
 // we don't want web clients to authenticate automatically by sending
 // credentials with http auth in case they have visited the api pages.
 
-app.get     ('/api/account',                    account.account);
-app.post    ('/api/login',                      account.login);
-app.get     ('/api/logout',                     account.logout);
-app.post    ('/api/signup',                     account.signup);
-app.delete  ('/api/account',                    account.delete_account);
+app.get     ('/api/account',                      account.account);
+app.post    ('/api/login',                        account.login);
+app.get     ('/api/logout',                       account.logout);
+app.post    ('/api/signup',                       account.signup);
+app.delete  ('/api/account',                      account.delete_account);
 
 // all /api/ requests from here on can be authenticated with basic http
 // authentication
 
-app.all     (/^\/api\//,                        common.require_authentication);
-app.param   ('user',                            user.param.user);
-app.get     ('/api/users',                      user.users);
-app.get     ('/api/users/:user',                user.user);
-app.delete  ('/api/users/:user',                user.delete);
-app.get     ('/api/users/:user/ledgers',        user.ledgers);
+app.all     (/^\/api\//,                          common.require_authentication);
+app.param   ('user',                              user.param.user);
+app.get     ('/api/users',                        user.users);
+app.get     ('/api/users/:user',                  user.user);
+app.delete  ('/api/users/:user',                  user.delete);
+app.get     ('/api/users/:user/ledgers',          user.ledgers);
 
-app.param   ('ledger',                          ledger.param.ledger);
-app.get     ('/api/ledgers',                    ledger.ledgers);
-app.post    ('/api/ledgers',                    ledger.create);
-app.get     ('/api/ledgers/:ledger',            ledger.ledger);
-app.delete  ('/api/ledgers/:ledger',            ledger.delete);
-app.put     ('/api/ledgers/:ledger',            ledger.update);
-app.get     ('/api/ledgers/:ledger/currencies', ledger.currencies);
-app.post    ('/api/ledgers/:ledger/currencies', ledger.add_currency);
-app.get     ('/api/ledgers/:ledger/persons',    ledger.persons);
-app.post    ('/api/ledgers/:ledger/persons',    ledger.add_person);
+app.param   ('ledger',                            ledger.param.ledger);
+app.get     ('/api/ledgers',                      ledger.ledgers);
+app.post    ('/api/ledgers',                      ledger.create);
+app.get     ('/api/ledgers/:ledger',              ledger.ledger);
+app.delete  ('/api/ledgers/:ledger',              ledger.delete);
+app.put     ('/api/ledgers/:ledger',              ledger.update);
+app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
+app.post    ('/api/ledgers/:ledger/currencies',   ledger.add_currency);
+app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
+app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
 /*
-app.param   ('currency',                        currency.param);
-app.get     ('/api/currencies/:currency',       currency.get);
-app.delete  ('/api/currencies/:currency',       currency.delete);
-app.put     ('/api/currencies/:currency',       currency.put);
-
-app.param   ('person',                          person.param);
-app.get     ('/api/currencies/:person',         person.get);
-app.delete  ('/api/currencies/:person',         person.delete);
-app.put     ('/api/currencies/:person',         person.put);
+app.get     ('/api/ledgers/:ledger/transactions', ledger.transactions);
+app.post    ('/api/ledgers/:ledger/transactions', ledger.add_transaction);
 */
+
+app.param   ('currency',                          currency.param);
+app.get     ('/api/currencies/:currency',         currency.get);
+app.delete  ('/api/currencies/:currency',         currency.delete);
+app.put     ('/api/currencies/:currency',         currency.put);
+
+app.param   ('person',                            person.param);
+app.get     ('/api/persons/:person',              person.get);
+app.delete  ('/api/persons/:person',              person.delete);
+app.put     ('/api/persons/:person',              person.put);
+
+/*
+app.param   ('ta',                                transaction.param);
+app.get     ('/api/transactions/:ta',             transaction.get);
+app.delete  ('/api/transactions/:ta',             transaction.delete);
+app.put     ('/api/transactions/:ta',             transaction.put);
+app.get     ('/api/transactions/:ta/participants  transactions.participants);
+app.post    ('/api/transactions/:ta/participants  transactions.add_participant);
+
+app.param   ('p',                                 participant.param);
+app.get     ('/api/participants/:p',              participant.get);
+app.delete  ('/api/participants/:p',              participant.delete);
+app.put     ('/api/participants/:p',              participant.put);
+app.get     ('/api/participants/:p/amounts        participant.amounts);
+app.post    ('/api/participants/:p/amounts        participant.add_amount);
+
+app.param   ('amount',                            amount.param);
+app.get     ('/api/amounts/:amount',              amount.get);
+app.delete  ('/api/amounts/:amount',              amount.delete);
+app.put     ('/api/amounts/:amount',              amount.put);
+*/
+
 // static secure content
 
 app.use(express.static(path.join(__dirname, 'public/secure')));

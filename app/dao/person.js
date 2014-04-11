@@ -62,6 +62,35 @@ dao.find_by_ledger_id = function(ledger_id, db) {
   then(util.construct_set(Person));
 };
 
+// return {
+//  person:Person
+//  owners:[user_id]
+// }
+
+dao.find_with_owners = function(person_id, db) {
+  db = db || qdb;
+  return db.transaction(function(query) {
+    db = { query: query };
+    return Promise.bind({}).
+    then(function() {
+      return dao.find(person_id, db);
+    }).
+    then(function(person) {
+      this.person = person;
+    }).
+    then(function() {
+      return db.query('select user_id from owner where ledger_id = $1;',
+          [this.person.ledger_id]);
+    }).
+    then(function(result) {
+      this.owners = result.rows.map(function(row) {
+        return row.user_id;
+      });
+      return this;
+    });
+  });
+};
+
 // automatically generated stuff
 
 var orm = shitorm({
@@ -78,3 +107,4 @@ var orm = shitorm({
 
 dao.delete = orm.delete;
 dao.update = orm.update;
+dao.find = orm.find;
