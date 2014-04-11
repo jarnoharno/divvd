@@ -16,12 +16,13 @@ Hox.prototype.constructor = Hox;
 // A helper function to easily send http error message in json format
 // with express
 
-Hox.prototype.send = function(res, hidden_auth) {
+Hox.prototype.send = function(res) {
   if (this.code === 401) {
-    if (hidden_auth) {
-      res.setHeader('WWW-Authenticate', 'Custom realm="Authorization Required"');
-    } else {
+    // custom parameter in response
+    if (res.basic_auth) {
       res.setHeader('WWW-Authenticate', 'Basic realm="Authorization Required"');
+    } else {
+      res.setHeader('WWW-Authenticate', 'Custom realm="Authorization Required"');
     }
   }
   res.json(this.code, {

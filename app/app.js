@@ -46,6 +46,11 @@ app.use(express.session({
   key: 'sid',
   proxy: true
 }));
+app.use(function(req, res, next) {
+  // used in error handling
+  res.basic_auth = !!(req.query && req.query.auth === 'basic');
+  next();
+});
 
 app.use(app.router);
 

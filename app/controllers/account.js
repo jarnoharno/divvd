@@ -23,7 +23,7 @@ exports.account = function(req, res) {
   then(function(usr) {
     res.json(usr);
   }).
-  catch(common.handle(res));
+  catch(common.handle(res, true));
 };
 
 // GET /api/logout
@@ -42,7 +42,7 @@ exports.logout = function(req, res) {
     session.delete_current(req);
     res.json(usr);
   }).
-  catch(common.handle(res));
+  catch(common.handle(res, true));
 };
 
 // POST /api/login
@@ -63,7 +63,7 @@ exports.login = function(req, res) {
       req.session.user = usr;
     res.json(usr);
   }).
-  catch(common.handle(res));
+  catch(common.handle(res, true));
 };
 
 // POST /api/signup
@@ -84,7 +84,7 @@ exports.signup = function(req, res) {
     req.session.user = usr;
     res.json(usr);
   }).
-  catch(common.handle(res));
+  catch(common.handle(res, true));
 };
 
 // DELETE /api/account
@@ -109,5 +109,5 @@ exports.delete_account = function(req, res) {
       res.json(usr);
     });
   }).
-  catch(common.handle(res));
+  catch(common.handle(res, true));
 };

@@ -66,13 +66,13 @@ common.error = function(res, err) {
   res.json(500, { message: err.message });
 };
 
-common.handle = function(res, hidden_auth) {
+common.handle = function(res, auth) {
   return function(err) {
     if (err instanceof Hox) {
       if (err.code == 500) {
         console.error(err.stack);
       }
-      err.send(res, hidden_auth);
+      err.send(res, auth);
     } else {
       console.error(err.stack);
       res.json(500, { message: "server error" });
