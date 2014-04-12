@@ -31,7 +31,7 @@ common.parse_basic_auth = function(req) {
   var body = auth(req);
   if (body) {
     return {
-      username: body.user,
+      username: body.name,
       password: body.pass
     };
   } else {
@@ -40,6 +40,10 @@ common.parse_basic_auth = function(req) {
 }
 
 common.require_authentication = function(req, res, next) {
+
+  // used in error handling
+  res.basic_auth = !!(req.query && req.query.auth === 'basic');
+
   if (req.session.user) {
     next();
     return;
@@ -48,6 +52,7 @@ common.require_authentication = function(req, res, next) {
     return common.parse_basic_auth(req);
   }).
   then(function(credentials) {
+    console.log(credentials);
     return user.find_username_and_password(credentials);
   }).
   then(function(usr) {

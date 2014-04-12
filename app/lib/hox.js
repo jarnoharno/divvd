@@ -20,9 +20,9 @@ Hox.prototype.send = function(res) {
   if (this.code === 401) {
     // custom parameter in response
     if (res.basic_auth) {
-      res.setHeader('WWW-Authenticate', 'Basic realm="Authorization Required"');
+      res.setHeader('WWW-Authenticate', 'Basic realm="Divvd API"');
     } else {
-      res.setHeader('WWW-Authenticate', 'Custom realm="Authorization Required"');
+      res.setHeader('WWW-Authenticate', 'Custom realm="Divvd API"');
     }
   }
   res.json(this.code, {
