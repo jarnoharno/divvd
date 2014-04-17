@@ -1,7 +1,7 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-angular.module('divvd', [
+var app = angular.module('divvd', [
   'ui.bootstrap',
   'ui.router',
   'ngResource',
@@ -26,7 +26,7 @@ config(['$stateProvider', '$urlRouterProvider',
       }
     },
     views: {
-      'nav@': {
+      'nav': {
         templateUrl: 'partials/guest_nav.html'
       },
       'body@': {
@@ -58,7 +58,7 @@ config(['$stateProvider', '$urlRouterProvider',
       }
     },
     views: {
-      'nav@': {
+      'nav': {
         templateUrl: 'partials/member_nav.html'
       },
       'body@': {
@@ -68,6 +68,8 @@ config(['$stateProvider', '$urlRouterProvider',
   }).
   state('member.ledgers', {
     url: 'ledgers',
+  }).
+  state('member.ledger', {
   });
 }]).
 controller('MainCtrl', ['$scope', 'auth', '$state',

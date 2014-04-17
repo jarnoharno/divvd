@@ -97,6 +97,7 @@ $(BUILD_DB_PREFIX)init-data: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd divvd -f db/init-helpers.sql
 	touch $(BUILD_DB_PREFIX)init-schema
 	psql divvd divvd -f db/init-data.sql
+	psql divvd divvd -f db/test-data.sql
 $(BUILD_DB_PREFIX)drop-schema: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	rm $(BUILD_DB_PREFIX)init-schema 2> /dev/null; true

@@ -1,5 +1,4 @@
-angular.module('divvd.api', []).
-factory('ledger', ['$resource', function($resource) {
+app.factory('ledger', ['$resource', function($resource) {
   return $resource('/api/ledgers/:ledger_id', {}, {
     all: {
       method: 'GET',

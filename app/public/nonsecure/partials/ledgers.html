@@ -1,7 +1,7 @@
-<div class="container">
+<div class="container" ng-controller="Ledgers">
   <div style="height: 60px">
     <h2 class="sub-header pull-left" style="margin-top: 0">
-      {{u.user.username}}'s ledgers
+      {{user.username}}'s ledgers
     </h2>
     <button type="button" class="btn btn-success pull-right" ng-click="add()">
       Add new ledger
@@ -19,7 +19,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="ledger in d.ledgers">
+        <tr ng-repeat="ledger in ledgers">
           <td>
             <button type="button" class="btn btn-primary btn-danger btn-xs"
               ng-click="delete()">
