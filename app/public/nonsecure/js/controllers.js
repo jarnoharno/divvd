@@ -4,15 +4,28 @@
 
 angular.module('divvd.controllers', []).
 
-controller('appState', ['$scope', 'auth', 'route',
-    function($scope, auth, route) {
+controller('appState', ['$scope', 'auth', 'route', 'appState',
+    function($scope, auth, route, appState) {
   $scope.u = auth.prop;
   $scope.r = route.prop;
   $scope.routeStarts = function(route) {
     return $scope.r.route.substring(0, route.length) === route;
   };
   $scope.logout = auth.logout;
+
+  // current state
+
+  $scope.d = appState.data;
 }]).
+
+controller('ledgers', function($scope) {
+  $scope.delete = function() {
+    console.log('delete (TODO)');
+  }
+  $scope.add = function() {
+    console.log('add (TODO)');
+  }
+}).
 
 controller('transaction', function ($scope) {
   $scope.today = function() {

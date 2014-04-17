@@ -3,8 +3,10 @@
 // Declare app level module which depends on filters, and services
 angular.module('divvd', [
   'ui.bootstrap',
+  'ui.router',
   'ngRoute',
   'ngResource',
+  'divvd.api',
   'divvd.filters',
   'divvd.services',
   'divvd.directives',

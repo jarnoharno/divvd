@@ -14,7 +14,8 @@
   </div>
   <!-- ledgers -->
   <div ng-show="u.user.role !== 'guest' && (r.route === '/' || r.route === '/ledgers')">
-    <ng-include src="'/partials/ledgers.html'"></ng-include>
+    <ng-include src="'/partials/ledgers.html'"
+      ng-controller="ledgers"></ng-include>
   </div>
   <!-- ledger -->
   <div ng-show="u.user.role !== 'guest' && r.route === '/ledgers/:ledgerId'">
