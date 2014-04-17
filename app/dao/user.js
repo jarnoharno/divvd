@@ -47,7 +47,7 @@ dao.find_username_and_password = function(body, db) {
 
 dao.find_by_ledger_id = function(ledger_id, db) {
   db = db || qdb;
-  return db.query('select username, role, user_id from "user" natural join owner where ledger_id = $1;',
+  return db.query('select username, role, user_id, currency_id from "user" natural join owner where ledger_id = $1;',
       [ledger_id]).
   then(function(result) {
     return result.rows.map(function(row) {

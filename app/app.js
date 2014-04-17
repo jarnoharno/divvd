@@ -85,6 +85,8 @@ app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
 app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
 app.get     ('/api/ledgers/:ledger/transactions', ledger.transactions);
 app.post    ('/api/ledgers/:ledger/transactions', ledger.add_transaction);
+app.param   ('o',                                 ledger.param.owner);
+app.put     ('/api/ledgers/:ledger/owners/:o',    ledger.update_owner);
 
 app.param   ('currency',                          currency.param);
 app.get     ('/api/currencies/:currency',         currency.get);

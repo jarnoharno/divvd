@@ -214,6 +214,52 @@ exports.update = function(req, res) {
   catch(common.handle(res));
 };
 
+// PUT /api/ledgers/:ledger/owners/:owner
+//
+// Update owner
+//
+// \post_param {
+//  currency_id:integer
+// }
+// \return {
+//  user_id:integer
+//  ledger_id:integer
+//  currency_id:integer
+// }
+
+var update_owner_schema = {
+  "id": "/update_owner",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "currency_id": {
+      "type": "/positive_integer"
+    }
+  }
+};
+
+exports.update_owner = function(req, res) {
+  Promise.try(function() {
+    if (!validate(req.body, update_owner_schema)) {
+      throw new Hox(400, "unexpected parameters");
+    }
+    return session.authorize_spoof(req, function(me) {
+      return  me.role.match(/admin/) ||
+              req.params.ledger.owners.reduce(function(prev, owner) {
+                return prev || owner.user_id === me.user_id;
+              }, false);
+    });
+  }).
+  then(function() {
+    req.body.user_id = req.params.owner.user_id;
+    return ledger.update_owner(req.params.ledger.ledger_id, req.body);
+  }).
+  then(function(ledger) {
+    res.json(ledger);
+  }).
+  catch(common.handle(res));
+}
+
 // TODO credentials check
 // this could be taken from req.param.ledger!
 
@@ -392,4 +438,11 @@ exports.param.ledger = function(req, res, next, id) {
     next();
   }).
   catch(common.handle(res));
+};
+
+exports.param.owner = function(req, res, next, id) {
+  req.params.owner = {
+    user_id: id
+  };
+  next();
 };

@@ -22,8 +22,8 @@ values
 );
 
 insert into ledger (title) values ('night out');
-insert into owner (user_id, ledger_id) values (1, 1);
 insert into currency (code, rate, ledger_id) values ('€', 1.00000000, 1);
+insert into owner (user_id, ledger_id, currency_id) values (1, 1, 1);
 insert into ledger_settings (ledger_id, total_currency_id) values (1, 1);
 insert into person (name, currency_id, user_id, ledger_id)
   values ('test', 1, 1, 1);

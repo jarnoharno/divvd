@@ -1,6 +1,7 @@
 var Ledger = require('../models/ledger');
 var currency = require('./currency');
 var user = require('./user');
+var User = require('../models/user');
 var person = require('./person');
 var Hox = require('../lib/hox');
 var Promise = require('bluebird');
@@ -60,12 +61,17 @@ dao.create = function(props, db) {
 
     // insert owner
     then(function() {
-      return insert_owner(props.user_id, this.ledger_id, db);
+      return insert_owner(props.user_id, this.ledger_id,
+        this.total_currency_id, db);
     }).
 
     // insert person
-    then(function() {
-      return user.find(props.user_id, db);
+    then(function(owner) {
+      return user.find(props.user_id, db).
+      then(function(usr) {
+        usr.currency_id = owner.currency_id;
+        return usr;
+      });
     }).
     then(function(user) {
       this.owners = [user];
@@ -176,6 +182,16 @@ dao.update = function(ledger_id, props, db) {
   });
 };
 
+dao.update_owner = function(ledger_id, props, db) {
+  db = db || qdb;
+  return db.query('update owner set currency_id = $1 where ledger_id = $2 and user_id = $3 returning user_id, ledger_id, currency_id;',
+      [props.currency_id, ledger_id, props.user_id]).
+  then(util.first_row).
+  then(function(usr) {
+    return new User(usr);
+  });
+}
+
 // \return [user_id]
 
 dao.find_owners = function(ledger_id, db) {
@@ -211,9 +227,10 @@ function insert_ledger(title, db) {
   });
 }
 
-function insert_owner(user_id, ledger_id, db) {
-  return db.query('insert into owner (user_id, ledger_id) values ($1, $2);',
-      [user_id, ledger_id]);
+function insert_owner(user_id, ledger_id, currency_id, db) {
+  return db.query('insert into owner (user_id, ledger_id, currency_id) values ($1, $2, $3) returning user_id, ledger_id, currency_id;',
+      [user_id, ledger_id, currency_id]).
+  then(util.first_row);
 }
 
 function insert_ledger_settings(ledger_id, total_currency_id, db) {

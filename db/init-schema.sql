@@ -33,21 +33,6 @@ create table ledger (
     primary key
 );
 
-create table owner (
-  user_id integer
-    not null
-    references "user" on delete cascade
-    ,
-  ledger_id integer
-    not null
-    references ledger on delete cascade
-    ,
-  owner_id serial
-    primary key
-    ,
-  unique (user_id, ledger_id)
-);
-
 create table currency (
   code text
     default '€'
@@ -64,6 +49,24 @@ create table currency (
     ,
   currency_id serial
     primary key
+);
+
+create table owner (
+  user_id integer
+    not null
+    references "user" on delete cascade
+    ,
+  ledger_id integer
+    not null
+    references ledger on delete cascade
+    ,
+  currency_id integer
+    references currency on delete set null
+    ,
+  owner_id serial
+    primary key
+    ,
+  unique (user_id, ledger_id)
 );
 
 create table ledger_settings (
@@ -231,7 +234,7 @@ after insert or update on ledger deferrable initially deferred
 for each row execute procedure ledger_constraint_check();
 
 -- we could have a constraint for preventing the destruction of ledger
--- settings...
+-- settings, assigning currencies that are not owner by ledger etc
 
 -- mandatory data
 
