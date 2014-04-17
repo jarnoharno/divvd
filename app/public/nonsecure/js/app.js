@@ -12,22 +12,19 @@ angular.module('divvd', [
   'divvd.directives',
   'divvd.controllers'
 ]).
-config(['$routeProvider', function($routeProvider) {
-  // abusing 'controllerAs' parameter to provide
-  // route name for routeMap service
-  function route(name) {
-    $routeProvider.when(name, { controllerAs: name });
-  }
-  route('/');
-  route('/signup');
-  route('/login');
-  route('/logout');
-  route('/ledgers');
-  route('/ledgers/:ledgerId');
-  route('/ledgers/:ledgerId/summary');
-  route('/ledgers/:ledgerId/currencies');
-  route('/ledgers/:ledgerId/transactions/:transactionId');
-  $routeProvider.otherwise({ redirectTo: '/' });
+config(['$stateProvider', function($stateProvider) {
+  $stateProvider
+  .state('index', {
+    url: "",
+    views: {
+      "nav": {
+        templateUrl: "nav.html"
+      },
+      "body": {
+        templateUrl: "body.html"
+      }
+    }
+  });
 }]).
 config(['$locationProvider', function($locationProvider) {
   $locationProvider.html5Mode(true).hashPrefix('!');
