@@ -1,5 +1,5 @@
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation"
-  ng-controller="collapse" ng-click="collapse(false)">
+  ng-controller="Collapse">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle"
@@ -11,37 +11,7 @@
       </button>
       <a class="navbar-brand" href="/" ng-click="collapse(true)">Divvd</a>
     </div>
-    <div class="collapse navbar-collapse" collapse="isCollapsed">
-        <ul class="nav navbar-nav navbar-left"
-            ng-show="u.user.role !== 'guest'">
-          <li><a href="/ledgers" ng-click="collapse(true)">Ledgers</a></li>
-          <li class="divider"></li>
-          <li ng-show="routeStarts('/ledgers/:ledgerId')">
-            <a href="/ledgers/asdf" ng-click="collapse(true)">
-              <strong>household etc.</strong>
-            </a>
-          </li>
-          <li ng-show="routeStarts('/ledgers/:ledgerId')">
-            <a href="/ledgers/quux/currencies" ng-click="collapse(true)">
-              Currencies
-            </a>
-          </li>
-          <li ng-show="routeStarts('/ledgers/:ledgerId')">
-            <a href="/ledgers/quux/summary" ng-click="collapse(true)">
-              Summary
-            </a>
-          </li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right"
-            ng-show="u.user.role === 'guest'">
-          <li><a href="/login" ng-click="collapse(true)">Login</a></li>
-          <li><a href="/signup" ng-click="collapse(true)">Signup</a></li>
-        </ul>
-        <ul class="nav navbar-nav navbar-right"
-            ng-show="u.user.role !== 'guest'">
-          <li><a href="/" ng-click="collapse(true)">Home</a></li>
-          <li><a href ng-click="collapse(true); logout()">Logout</a></li>
-        </ul>
+    <div class="collapse navbar-collapse" collapse="isCollapsed" ui-view="nav">
     </div><!--/.nav-collapse -->
   </div>
 </div>

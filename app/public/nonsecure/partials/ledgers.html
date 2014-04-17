@@ -1,59 +1,61 @@
-<div style="height: 60px">
-  <h2 class="sub-header pull-left" style="margin-top: 0">
-    {{u.user.username}}'s ledgers
-  </h2>
-  <button type="button" class="btn btn-success pull-right" ng-click="add()">
-    Add new ledger
-  </button>
-</div>
-<div class="table-responsive">
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Action</th>
-        <th>Title</th>
-        <th>Your balance</th>
-        <th>Total value</th>
-        <th>Balanced</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="ledger in d.ledgers">
-        <td>
-          <button type="button" class="btn btn-primary btn-danger btn-xs"
-            ng-click="delete()">
-            <i class="fa fa-trash-o fa-fw"></i> Delete
-          </button>
-        </td>
-        <td>
-          <a ng-href="/ledgers/{{ledger.ledger_id}}" ng-bind="ledger.title"></a>
-        </td>
-        <td class="dropdown">TODO
-          <a href class="dropdown-toggle">
-            {{ledger.total_currency.code}}
-            <span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li ng-repeat="currency in ledger.currencies">
-              <a ng-bind="currency.code">
-              </a>
-            </li>
-          </ul>
-        </td>
-        <td class="dropdown">TODO
-          <a href class="dropdown-toggle">
-            {{ledger.total_currency.code}}
-            <span class="caret"></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li ng-repeat="currency in ledger.currencies">
-              <a ng-bind="currency.code">
-              </a>
-            </li>
-          </ul>
-        </td>
-        <td class="text-danger">No (TODO)</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="container">
+  <div style="height: 60px">
+    <h2 class="sub-header pull-left" style="margin-top: 0">
+      {{u.user.username}}'s ledgers
+    </h2>
+    <button type="button" class="btn btn-success pull-right" ng-click="add()">
+      Add new ledger
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Title</th>
+          <th>Your balance</th>
+          <th>Total value</th>
+          <th>Balanced</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="ledger in d.ledgers">
+          <td>
+            <button type="button" class="btn btn-primary btn-danger btn-xs"
+              ng-click="delete()">
+              <i class="fa fa-trash-o fa-fw"></i> Delete
+            </button>
+          </td>
+          <td>
+            <a ng-href="/ledgers/{{ledger.ledger_id}}" ng-bind="ledger.title"></a>
+          </td>
+          <td class="dropdown">TODO
+            <a href class="dropdown-toggle">
+              {{ledger.total_currency.code}}
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li ng-repeat="currency in ledger.currencies">
+                <a ng-bind="currency.code">
+                </a>
+              </li>
+            </ul>
+          </td>
+          <td class="dropdown">TODO
+            <a href class="dropdown-toggle">
+              {{ledger.total_currency.code}}
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li ng-repeat="currency in ledger.currencies">
+                <a ng-bind="currency.code">
+                </a>
+              </li>
+            </ul>
+          </td>
+          <td class="text-danger">No (TODO)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
