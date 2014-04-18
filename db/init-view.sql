@@ -1,4 +1,4 @@
---drop view if exists gen_amount cascade;
+drop view if exists gen_amount cascade;
 
 create view gen_amount as 
 select amount * rate gen_amount, *
@@ -63,7 +63,7 @@ select gen_total_credit + coalesce(gen_total_debit, 0) gen_residual,
 from all_gen_total_credit_transaction
 left join gen_total_explicit_debit_transaction using (transaction_id);
 
---drop view if exists debt_share_count cascade;
+drop view if exists debt_share_count cascade;
 
 -- number of debt sharing participants in transaction
 -- this should never be zero!
@@ -130,3 +130,33 @@ join ledger_settings as ls on t.ledger_id = ls.ledger_id
 join currency as tc on ls.total_currency_id = tc.currency_id
 join ledger on t.ledger_id = ledger.ledger_id
 join balanced_ledger as bl on t.ledger_id = bl.ledger_id;
+
+
+-- transactions web view table
+-- [{
+--   ledger_id:integer
+--   transaction_id:integer
+--   description:integer
+--   transfer:boolean
+--   user_id:integer
+--   user_balance:numeric
+--   user_balance_currency_id:integer -- there is currently only one currency
+--   total_value:numeric
+--   total_value_currency_id:integer
+--   user_credit:numeric
+--   user_credit_currency_id:integer
+-- }]
+
+-- ledger summary web view table
+-- [{
+--   ledger_id:integer
+--   title:string
+--   user_id:integer
+--   user_balance:numeric
+--   user_balance_currency_id:integer
+--   total_value:numeric
+--   total_value_currency_id:integer
+--   user_credit:numeric
+--   user_credit_currency_id:integer -- this does not exist currently
+-- }]
+

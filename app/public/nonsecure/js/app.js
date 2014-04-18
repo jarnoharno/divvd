@@ -27,10 +27,10 @@ config(['$stateProvider', '$urlRouterProvider',
     },
     views: {
       'nav': {
-        templateUrl: 'partials/guest_nav.html'
+        templateUrl: '/partials/guest_nav.html'
       },
       'body@': {
-        templateUrl: 'partials/guest_body.html'
+        templateUrl: '/partials/guest_body.html'
       }
     }
   }).
@@ -38,7 +38,7 @@ config(['$stateProvider', '$urlRouterProvider',
     url: 'login',
     views: {
       'body@': {
-        templateUrl: 'partials/login.html'
+        templateUrl: '/partials/login.html'
       }
     }
   }).
@@ -46,7 +46,7 @@ config(['$stateProvider', '$urlRouterProvider',
     url: 'signup',
     views: {
       'body@': {
-        templateUrl: 'partials/signup.html'
+        templateUrl: '/partials/signup.html'
       }
     }
   }).
@@ -59,17 +59,46 @@ config(['$stateProvider', '$urlRouterProvider',
     },
     views: {
       'nav': {
-        templateUrl: 'partials/member_nav.html'
+        templateUrl: '/partials/member_nav.html'
       },
       'body@': {
-        templateUrl: 'partials/ledgers.html'
+        templateUrl: '/partials/ledgers.html'
       }
     }
   }).
   state('member.ledgers', {
-    url: 'ledgers',
+    url: 'ledgers'
   }).
   state('member.ledger', {
+    url: 'ledgers/:ledger_id',
+    resolve: {
+      'currentLedger': function(ledger, $stateParams) {
+        return ledger.get($stateParams);
+      }
+    },
+    views: {
+      '@member': {
+        templateUrl: '/partials/ledger_nav.html',
+        controller: function($scope, currentLedger) {
+          $scope.ledger = currentLedger;
+        }
+      },
+      'body@': {
+        templateUrl: '/partials/ledger.html',
+        controller: function($scope, currentLedger) {
+          $scope.ledger = currentLedger;
+        }
+      }
+    }
+  }).
+  state('member.ledger.currencies', {
+    url: '/currencies'
+  }).
+  state('member.ledger.summary', {
+    url: '/summary'
+  }).
+  state('member.ledger.transaction', {
+    url: '/transactions/:transaction_id'
   });
 }]).
 controller('MainCtrl', ['$scope', 'auth', '$state',

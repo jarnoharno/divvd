@@ -1,0 +1,20 @@
+<li><a ui-sref="member.ledgers" ng-click="collapse(true)">Ledgers</a></li>
+<li class="divider"></li>
+<li>
+  <a ui-sref="member.ledger({ ledger_id: ledger.ledger_id })"
+    ng-click="collapse(true)">
+    <strong ng-bind="ledger.title"></strong>
+  </a>
+</li>
+<li>
+  <a ui-sref="member.ledger.currencies({ ledger_id: ledger.ledger_id })"
+    ng-click="collapse(true)">
+    Currencies
+  </a>
+</li>
+<li>
+  <a ui-sref="member.ledger.summary({ ledger_id: ledger.ledger_id })"
+    ng-click="collapse(true)">
+    Summary
+  </a>
+</li>

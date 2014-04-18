@@ -7,8 +7,8 @@
       Add new ledger
     </button>
   </div>
-  <div class="table-responsive">
-    <table class="table table-striped">
+  <div class="table-responsive divvd-table">
+    <table class="table table-striped" style="padding-bottom: 50px">
       <thead>
         <tr>
           <th>Action</th>
@@ -22,7 +22,7 @@
         <tr ng-repeat="ledger in ledgers">
           <td>
             <button type="button" class="btn btn-primary btn-danger btn-xs"
-              ng-click="delete()">
+              ng-click="delete(ledger)">
               <i class="fa fa-trash-o fa-fw"></i> Delete
             </button>
           </td>

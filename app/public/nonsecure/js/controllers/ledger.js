@@ -2,9 +2,9 @@
 
 /* Controllers */
 
-angular.module('divvd.controllers.ledgers', []).
-controller('Ledgers', ['$scope', 'ledger', '$q', 'auth',
+app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth',
     function($scope, ledger, $q, auth) {
+  console.log($scope.ledger);
   $scope.user = auth.data.user;
   $scope.balancedClass = function(b) {
     if (b) {

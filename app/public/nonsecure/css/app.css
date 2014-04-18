@@ -9,6 +9,10 @@ body {
   background-color: #eee;
 }
 
+.divvd-table {
+  padding-bottom: 200px;
+}
+
 .td-yes:before {
   content: 'Yes';
 }
