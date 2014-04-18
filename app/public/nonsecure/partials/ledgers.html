@@ -27,11 +27,12 @@
             </button>
           </td>
           <td>
-            <a ng-href="/ledgers/{{ledger.ledger_id}}" ng-bind="ledger.title"></a>
+            <a ui-sref="member.ledger({ ledger_id: ledger.ledger_id })"
+              ng-bind="ledger.title"></a>
           </td>
-          <td class="dropdown">TODO
+          <td class="dropdown">{{ledger.user_balance}}
             <a href class="dropdown-toggle">
-              {{ledger.total_currency.code}}
+              {{ledger.user_balance_currency.code}}
               <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
@@ -41,9 +42,9 @@
               </li>
             </ul>
           </td>
-          <td class="dropdown">TODO
+          <td class="dropdown">{{ledger.total_value}}
             <a href class="dropdown-toggle">
-              {{ledger.total_currency.code}}
+              {{ledger.total_value_currency.code}}
               <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
@@ -53,7 +54,7 @@
               </li>
             </ul>
           </td>
-          <td class="text-danger">No (TODO)</td>
+          <td ng-class="balancedClass(ledger.balanced)"></td>
         </tr>
       </tbody>
     </table>

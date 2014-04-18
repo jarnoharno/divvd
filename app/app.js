@@ -76,6 +76,7 @@ app.get     ('/api/users/:user/ledgers',          user.ledgers);
 app.param   ('ledger',                            ledger.param.ledger);
 app.get     ('/api/ledgers',                      ledger.ledgers);
 app.post    ('/api/ledgers',                      ledger.create);
+app.get     ('/api/ledgers/summary',              ledger.ledgers_summary);
 app.get     ('/api/ledgers/:ledger',              ledger.ledger);
 app.delete  ('/api/ledgers/:ledger',              ledger.delete);
 app.put     ('/api/ledgers/:ledger',              ledger.update);

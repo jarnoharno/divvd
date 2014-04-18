@@ -214,6 +214,21 @@ exports.update = function(req, res) {
   catch(common.handle(res));
 };
 
+// GET /api/ledgers/summary
+//
+// Return summary of all ledgers owned by the currenct user
+
+exports.ledgers_summary = function(req, res) {
+  session.current_user(req).
+  then(function(usr) {
+    return ledger.ledgers_summary(usr.user_id);
+  }).
+  then(function(summary) {
+    res.json(summary);
+  }).
+  catch(common.handle(res));
+};
+
 // PUT /api/ledgers/:ledger/owners/:owner
 //
 // Update owner

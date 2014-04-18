@@ -203,6 +203,15 @@ dao.find_owners = function(ledger_id, db) {
   });
 };
 
+dao.ledgers_summary = function(user_id, db) {
+  db = db || qdb;
+  return db.query('select * from ledgers_web_view where user_id = $1;',
+      [user_id]).
+  then(function(result) {
+    return result.rows;
+  });
+};
+
 // automatically generated stuff
 
 var orm = shitorm({
