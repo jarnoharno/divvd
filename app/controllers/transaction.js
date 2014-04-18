@@ -105,6 +105,57 @@ exports.put = function(req, res) {
   catch(common.handle(res));
 };
 
+// PUT /api/transactions/:t/summary
+//
+// Update transaction owner summary page
+//
+// \post_param {
+//  user_balance_currency_id:integer
+//  total_value_currency_id:integer
+//  user_credit_currency_id:integer
+// }
+// \return {
+// }
+
+var update_summary_schema = {
+  "id": "/update_summary",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "owner_balance_currency_id": {
+      "$ref": "/positive_integer"
+    },
+    "total_value_currency_id": {
+      "$ref": "/positive_integer"
+    },
+    "owner_total_credit_currency_id": {
+      "$ref": "/positive_integer"
+    }
+  }
+};
+
+exports.update_summary = function(req, res) {
+  Promise.try(function() {
+    if (!validate(req.body, update_summary_schema)) {
+      throw new Hox(400, "unexpected parameters");
+    }
+    return session.authorize_spoof(req, function(me) {
+      return  req.params.owners.reduce(function(prev, user_id) {
+                return prev || user_id === me.user_id;
+              }, false);
+    });
+  }).
+  then(function(usr) {
+    return transaction.update_summary(req.params.transaction.transaction_id,
+				usr.user_id, req.body);
+  }).
+  then(function(obj) {
+    res.json(obj);
+  }).
+  catch(common.handle(res));
+};
+
+
 // TODO credentials check
 
 exports.participants = function(req, res) {

@@ -5,6 +5,11 @@ app.factory('ledger', ['$resource', function($resource) {
       url: '/api/ledgers/summary',
       isArray: true
     },
+		summary: {
+			method: 'GET',
+			url: '/api/ledgers/:ledger_id/transactions/summary',
+			isArray: true
+		},
     all: {
       method: 'GET',
       url: '/api/ledgers',
@@ -24,4 +29,13 @@ app.factory('ledger', ['$resource', function($resource) {
       url: '/api/ledgers/:ledger_id/owners/:user_id'
     }
   });
+}]);
+
+app.factory('transaction', ['$resource', function($resource) {
+	return $resource('/api/transactions/:transaction_id', {}, {
+		update_summary: {
+			method: 'PUT',
+			url: '/api/transactions/:transaction_id/summary'
+		}
+	});
 }]);

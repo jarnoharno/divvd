@@ -229,6 +229,27 @@ exports.ledgers_summary = function(req, res) {
   catch(common.handle(res));
 };
 
+// GET /api/ledgers/:ledger/transactions/summary
+//
+// Return a summary of transactions in this ledger from the viewpoint
+// of the current user
+
+exports.summary = function(req, res) {
+  session.authorize_spoof(req, function(me) {
+    return  req.params.ledger.owners.reduce(function(prev, owner) {
+              return prev || owner.user_id === me.user_id;
+            }, false);
+  }).
+  then(function(usr) {
+    return ledger.summary(req.params.ledger.ledger_id, usr.user_id);
+  }).
+  then(function(transactions) {
+    res.json(transactions);
+  }).
+  catch(common.handle(res));
+};
+
+
 // PUT /api/ledgers/:ledger/owners/:owner
 //
 // Update owner
@@ -461,3 +482,11 @@ exports.param.owner = function(req, res, next, id) {
   };
   next();
 };
+
+exports.param.transaction = function(req, res, next, id) {
+  req.params.transaction = {
+    transaction_id: id
+  };
+  next();
+};
+

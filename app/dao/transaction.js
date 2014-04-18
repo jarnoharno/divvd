@@ -60,6 +60,21 @@ dao.create = function(props, db) {
   });
 };
 
+dao.update_summary = function(transaction_id, user_id, props, db) {
+	db = db || qdb;
+	var set = Object.keys(props).map(function(k, i) {
+		return k + ' = $' + (i + 3);
+	}).join(', ');
+	return db.query('update owner_transaction_settings set ' + set +
+		' where owner_transaction_settings_id = (select owner_transaction_settings_id from owner_transaction_settings join owner using (owner_id) where user_id = $1 and transaction_id = $2) returning *;',
+		[user_id, transaction_id].concat(Object.keys(props).map(function(k) {
+			return props[k];
+		}))
+	).
+	then(util.check_empty).
+	then(util.first_row);
+};
+
 dao.update = orm.update;
 dao.delete = orm.delete;
 

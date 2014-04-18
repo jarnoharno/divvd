@@ -73,7 +73,16 @@ config(['$stateProvider', '$urlRouterProvider',
     url: 'ledgers/:ledger_id',
     resolve: {
       'currentLedger': function(ledger, $stateParams) {
-        return ledger.get($stateParams);
+				var led = ledger.get($stateParams);
+				led.$promise.
+				then(function(l) {
+					// currency map
+					l.currencyMap = {};
+					l.currencies.forEach(function(c) {
+						l.currencyMap[c.currency_id] = c;
+					});
+				});
+        return led;
       }
     },
     views: {

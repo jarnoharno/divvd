@@ -212,6 +212,15 @@ dao.ledgers_summary = function(user_id, db) {
   });
 };
 
+dao.summary = function(ledger_id, user_id, db) {
+	db = db || qdb;
+	return db.query('select * from transactions_web_view where ledger_id = $1 and user_id = $2;',
+			[ledger_id, user_id]).
+	then(function(result) {
+		return result.rows;
+	});
+};
+
 // automatically generated stuff
 
 var orm = shitorm({
