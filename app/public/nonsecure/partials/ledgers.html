@@ -37,7 +37,8 @@
             </a>
             <ul class="dropdown-menu">
               <li ng-repeat="currency in ledger.currencies">
-                <a ng-bind="currency.code">
+                <a ng-bind="currency.code"
+                  ng-click="setBalanceCurrency(ledger, currency)">
                 </a>
               </li>
             </ul>
@@ -49,7 +50,8 @@
             </a>
             <ul class="dropdown-menu">
               <li ng-repeat="currency in ledger.currencies">
-                <a ng-bind="currency.code">
+                <a ng-bind="currency.code"
+                  ng-click="setTotalCurrency(ledger, currency)">
                 </a>
               </li>
             </ul>

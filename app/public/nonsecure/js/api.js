@@ -14,6 +14,14 @@ app.factory('ledger', ['$resource', function($resource) {
       method: 'GET',
       url: '/api/ledgers/:ledger_id/currencies',
       isArray: true
+    },
+    update: {
+      method: 'PUT',
+      url: '/api/ledgers/:ledger_id'
+    },
+    update_owner: {
+      method: 'PUT',
+      url: '/api/ledgers/:ledger_id/owners/:user_id'
     }
   });
 }]);
