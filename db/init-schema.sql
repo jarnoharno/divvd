@@ -60,7 +60,13 @@ create table owner (
     not null
     references ledger on delete cascade
     ,
+  -- owner total balance
   currency_id integer
+    -- null
+    references currency on delete set null
+    ,
+  total_credit_currency_id integer
+    -- null
     references currency on delete set null
     ,
   owner_id serial
@@ -135,6 +141,33 @@ create table transaction (
     ,
   transaction_id serial
     primary key
+);
+
+create table owner_transaction_settings (
+  owner_id integer
+    not null
+    references owner on delete cascade
+    ,
+  transaction_id integer
+    not null
+    references transaction on delete cascade
+    ,
+  owner_balance_currency_id integer
+    -- null
+    references currency on delete set null
+    ,
+  total_value_currency_id integer
+    -- null
+    references currency on delete set null
+    ,
+  owner_total_credit_currency_id integer
+    -- null
+    references currency on delete set null
+    ,
+  owner_transaction_settings_id serial
+    primary key
+    ,
+  unique (owner_id, transaction_id)
 );
 
 create table participant (

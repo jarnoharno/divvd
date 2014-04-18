@@ -22,11 +22,17 @@ select sum(gen_amount) gen_total_credit, person_id
 from gen_credit
 group by person_id;
 
--- generalized explicit total credit per transaction
+-- generalized total credit per transaction
 create view gen_total_credit_transaction as
 select sum(gen_amount) gen_total_credit, transaction_id 
 from gen_credit
 group by transaction_id;
+
+-- generalized total credit per participant
+create view gen_total_credit_participant as
+select sum(gen_amount) gen_total_credit, participant_id
+from gen_credit
+group by participant_id;
 
 -- all generalized totals, even if there are rows in "amount" for a transaction
 -- (even though that should not be legal)
@@ -55,6 +61,12 @@ create view gen_total_explicit_debit_person as
 select sum(gen_amount) gen_total_debit, person_id
 from gen_debit
 group by person_id;
+
+-- generalized explicit total debit per participant
+create view gen_total_explicit_debit_participant as
+select sum(gen_amount) gen_total_debit, participant_id
+from gen_debit
+group by participant_id;
 
 -- generalized residuals for all transactions
 create view all_gen_residual as
@@ -93,6 +105,19 @@ select sum(gen_shared_debt) gen_shared_debt, person_id
 from gen_shared_debt_participant
 group by person_id;
 
+-- generalized balance per participant
+create view gen_balance_participant as
+select
+  coalesce(gen_total_credit, 0) gen_credit,
+  coalesce(gen_total_debit, 0) - coalesce(gen_shared_debt, 0) gen_debit,
+  coalesce(gen_total_credit, 0) + coalesce(gen_total_debit, 0)
+  - coalesce(gen_shared_debt, 0) gen_balance,
+  participant.*
+from participant
+left join gen_total_credit_participant using (participant_id)
+left join gen_total_explicit_debit_participant using (participant_id)
+left join gen_shared_debt_participant using (participant_id);
+
 -- generalized balance per person
 create view gen_balance_person as
 select
@@ -123,7 +148,7 @@ cast(gen_total / tc.rate as numeric(16,2)) total_value,
 ls.total_currency_id total_value_currency_id,
 is_balanced
 from gen_balance_person as t
-join owner on t.user_id = owner.ledger_id
+join owner on t.user_id = owner.user_id and t.ledger_id = owner.ledger_id
 join currency as bc on owner.currency_id = bc.currency_id
 join gen_total_ledger on t.ledger_id = gen_total_ledger.ledger_id
 join ledger_settings as ls on t.ledger_id = ls.ledger_id
@@ -140,12 +165,47 @@ join balanced_ledger as bl on t.ledger_id = bl.ledger_id;
 --   transfer:boolean
 --   user_id:integer
 --   user_balance:numeric
---   user_balance_currency_id:integer -- there is currently only one currency
+--   user_balance_currency_id:integer
 --   total_value:numeric
 --   total_value_currency_id:integer
 --   user_credit:numeric
 --   user_credit_currency_id:integer
 -- }]
+
+create view gen_balance_owner_participant as
+select
+gen_credit,
+gen_debit,
+gen_balance,
+participant_id,
+transaction_id,
+owner_id,
+o.user_id,
+o.ledger_id
+from gen_balance_participant
+join person p using (person_id)
+join owner o on p.user_id = o.user_id and p.ledger_id = o.ledger_id;
+
+create view transactions_web_view as
+select
+a.ledger_id,
+transaction_id,
+description,
+transfer,
+user_id,
+cast(gen_balance / d.rate as numeric(16,2)) user_balance,
+d.currency_id user_balance_currency_id,
+cast(gen_total_credit / g.rate as numeric(16,2)) total_value,
+g.currency_id total_value_currency_id,
+cast(gen_credit / e.rate as numeric(16,2)) user_credit,
+e.currency_id user_credit_currency_id
+from gen_balance_owner_participant as a
+join transaction as b using (transaction_id)
+join owner_transaction_settings as c using (transaction_id, owner_id)
+join currency as d on c.owner_balance_currency_id = d.currency_id
+join currency as e on c.owner_total_credit_currency_id = e.currency_id
+join gen_total_credit_transaction as f using (transaction_id)
+join currency as g on c.total_value_currency_id = g.currency_id;
 
 -- ledger summary web view table
 -- [{
@@ -157,6 +217,25 @@ join balanced_ledger as bl on t.ledger_id = bl.ledger_id;
 --   total_value:numeric
 --   total_value_currency_id:integer
 --   user_credit:numeric
---   user_credit_currency_id:integer -- this does not exist currently
+--   user_credit_currency_id:integer
 -- }]
+
+-- generalized total credit per owner per transaction
+
+create view ledger_summary_web_view as
+select
+a.ledger_id,
+title,
+user_id,
+user_balance,
+user_balance_currency_id,
+total_value,
+total_value_currency_id,
+cast(gen_total_credit / c.rate as numeric(16,2)) user_credit,
+c.currency_id user_credit_currency_id
+from ledgers_web_view as a
+join person using (ledger_id, user_id)
+join gen_total_credit_person using (person_id)
+join owner as o using (ledger_id, user_id)
+join currency as c on o.total_credit_currency_id = c.currency_id;
 

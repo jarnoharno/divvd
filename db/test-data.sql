@@ -6,13 +6,15 @@ copy currency (code, rate, ledger_id) from stdin;
 €	1.00000	1
 SEK	0.11693	1
 \.
-copy owner (user_id, ledger_id, currency_id) from stdin;
-1	1	1
+copy owner (user_id, ledger_id, currency_id,
+total_credit_currency_id) from stdin;
+1	1	1	1
 \.
 copy ledger_settings (ledger_id, total_currency_id) from stdin;
 1	1
 \.
-copy person (name, currency_id, user_id, ledger_id) from stdin;
+copy person (name, currency_id, user_id, ledger_id)
+from stdin;
 Jarno	1	1	1
 Tommi	1	\N	1
 Niki	1	\N	1
@@ -47,7 +49,39 @@ copy "transaction" (ledger_id, "date", description, currency_id) from stdin;
 1	2013-08-02T12:00:00+0300	kiska	2
 1	2013-08-03T12:00:00+0300	löpö	2
 \.
-copy participant (credit_currency_id, debit_currency_id, shared_debt_currency_id, balance_currency_id, transaction_id, share_debt, person_id) from stdin;
+copy owner_transaction_settings (transaction_id, owner_id,
+	owner_balance_currency_id, total_value_currency_id,
+	owner_total_credit_currency_id) from stdin;
+1	1	1	1	1
+2	1	1	1	1
+3	1	1	1	1
+4	1	1	1	1
+5	1	1	1	1
+6	1	1	1	1
+7	1	2	2	2
+8	1	2	2	2
+9	1	2	2	2
+10	1	2	2	2
+11	1	1	1	1
+12	1	1	1	1
+13	1	1	1	1
+14	1	1	1	1
+15	1	1	1	1
+16	1	1	1	1
+17	1	1	1	1
+18	1	1	1	1
+19	1	1	1	1
+20	1	2	2	2
+21	1	2	2	2
+22	1	1	1	1
+23	1	1	1	1
+24	1	2	2	2
+25	1	2	2	2
+26	1	2	2	2
+\.
+copy participant (credit_currency_id, debit_currency_id,
+	shared_debt_currency_id, balance_currency_id, transaction_id, share_debt,
+	person_id) from stdin;
 1	1	1	1	1	TRUE	1
 1	1	1	1	1	TRUE	2
 1	1	1	1	1	TRUE	3
