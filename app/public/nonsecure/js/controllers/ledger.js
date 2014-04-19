@@ -37,6 +37,10 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 	});
 
   $scope.delete = function(t) {
+		transaction.delete({
+			transaction_id: t.transaction_id
+		}).$promise.
+		then(updateView);
   };
 
   $scope.setBalanceCurrency = function(t, c) {

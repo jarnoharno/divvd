@@ -186,26 +186,38 @@ from gen_balance_participant
 join person p using (person_id)
 join owner o on p.user_id = o.user_id and p.ledger_id = o.ledger_id;
 
+-- there should be a record for each transaction_id, owner.user_id pair
 create view transactions_web_view as
 select
 a.ledger_id,
-transaction_id,
-description,
-transfer,
-user_id,
-cast(gen_balance / d.rate as numeric(16,2)) user_balance,
-d.currency_id user_balance_currency_id,
-cast(gen_total_credit / g.rate as numeric(16,2)) total_value,
-g.currency_id total_value_currency_id,
-cast(gen_credit / e.rate as numeric(16,2)) user_credit,
-e.currency_id user_credit_currency_id
-from gen_balance_owner_participant as a
-join transaction as b using (transaction_id)
-join owner_transaction_settings as c using (transaction_id, owner_id)
-join currency as d on c.owner_balance_currency_id = d.currency_id
-join currency as e on c.owner_total_credit_currency_id = e.currency_id
-join gen_total_credit_transaction as f using (transaction_id)
-join currency as g on c.total_value_currency_id = g.currency_id;
+a.transaction_id,
+a.description,
+a.transfer,
+b.user_id,
+cast(coalesce(gen_balance, 0) / f.rate as numeric(16,2)) user_balance,
+f.currency_id user_balance_currency_id,
+cast(coalesce(gen_total_credit, 0) / h.rate as numeric(16,2)) total_value,
+h.currency_id total_value_currency_id,
+cast(coalesce(gen_credit, 0) / g.rate as numeric(16,2)) user_credit,
+g.currency_id user_credit_currency_id
+from transaction                        as a
+join owner                              as b using (ledger_id)
+left join gen_balance_owner_participant as c using (owner_id, transaction_id)
+join gen_total_credit_transaction       as d using (transaction_id)
+join owner_transaction_settings         as e using (transaction_id, owner_id)
+join currency as f on e.owner_balance_currency_id       = f.currency_id
+join currency as g on e.owner_total_credit_currency_id  = g.currency_id
+join currency as h on e.total_value_currency_id         = h.currency_id
+;
+  
+--join transaction as b using (transaction_id)
+
+
+--join owner_transaction_settings as c using (transaction_id, owner_id)
+--join currency as d on c.owner_balance_currency_id = d.currency_id
+--join currency as e on c.owner_total_credit_currency_id = e.currency_id
+--join gen_total_credit_transaction as f using (transaction_id)
+--join currency as g on c.total_value_currency_id = g.currency_id;
 
 -- ledger summary web view table
 -- [{
@@ -231,11 +243,11 @@ user_balance,
 user_balance_currency_id,
 total_value,
 total_value_currency_id,
-cast(gen_total_credit / c.rate as numeric(16,2)) user_credit,
+cast(coalesce(gen_total_credit, 0) / c.rate as numeric(16,2)) user_credit,
 c.currency_id user_credit_currency_id
 from ledgers_web_view as a
 join person using (ledger_id, user_id)
-join gen_total_credit_person using (person_id)
+left join gen_total_credit_person using (person_id)
 join owner as o using (ledger_id, user_id)
 join currency as c on o.total_credit_currency_id = c.currency_id;
 
