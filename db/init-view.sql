@@ -3,8 +3,8 @@ drop view if exists gen_amount cascade;
 create view gen_amount as 
 select amount * rate gen_amount, *
 from amount 
-natural join currency
-natural join participant;
+join currency using (currency_id)
+join participant using (participant_id);
 
 create view gen_credit as
 select *
@@ -34,21 +34,13 @@ select sum(gen_amount) gen_total_credit, participant_id
 from gen_credit
 group by participant_id;
 
--- all generalized totals, even if there are rows in "amount" for a transaction
--- (even though that should not be legal)
-create view all_gen_total_credit_transaction as
-select coalesce(gen_total_credit, 0) gen_total_credit, transfer, ledger_id,
-  transaction_id
-from gen_total_credit_transaction
-right join "transaction" using (transaction_id);
-
 -- generalized total value per ledger
 create view gen_total_ledger as
-select sum(gen_total_credit) gen_total, ledger_id
-from all_gen_total_credit_transaction
+select sum(gen_amount) gen_total, a.ledger_id
+from gen_credit as a
+join transaction using (transaction_id)
 where transfer is false
-group by ledger_id;
-
+group by a.ledger_id;
 
 -- generalized explicit total debit per transaction
 create view gen_total_explicit_debit_transaction as
@@ -67,6 +59,14 @@ create view gen_total_explicit_debit_participant as
 select sum(gen_amount) gen_total_debit, participant_id
 from gen_debit
 group by participant_id;
+
+-- all generalized totals, even if there are rows in "amount" for a transaction
+-- (even though that should not be legal)
+create view all_gen_total_credit_transaction as
+select coalesce(gen_total_credit, 0) gen_total_credit, transfer, ledger_id,
+  transaction_id
+from gen_total_credit_transaction
+right join "transaction" using (transaction_id);
 
 -- generalized residuals for all transactions
 create view all_gen_residual as
@@ -136,25 +136,37 @@ create view balanced_ledger as
 select every(gen_balance = 0) is_balanced, ledger_id
 from gen_balance_person group by ledger_id;
 
+
+--drop view if exists ledgers_web_view cascade;
+
 -- ledgers view for web
+-- there should be a record for each owner
 create view ledgers_web_view as
-select
-t.ledger_id ledger_id,
-title,
-t.user_id user_id,
-cast(gen_balance / bc.rate as numeric(16,2)) user_balance,
-owner.currency_id user_balance_currency_id,
-cast(gen_total / tc.rate as numeric(16,2)) total_value,
-ls.total_currency_id total_value_currency_id,
-is_balanced
-from gen_balance_person as t
-join owner on t.user_id = owner.user_id and t.ledger_id = owner.ledger_id
-join currency as bc on owner.currency_id = bc.currency_id
-join gen_total_ledger on t.ledger_id = gen_total_ledger.ledger_id
-join ledger_settings as ls on t.ledger_id = ls.ledger_id
-join currency as tc on ls.total_currency_id = tc.currency_id
-join ledger on t.ledger_id = ledger.ledger_id
-join balanced_ledger as bl on t.ledger_id = bl.ledger_id;
+select b.ledger_id
+     , title
+     , user_id
+     , cast(coalesce(gen_balance, 0) / f.rate as numeric(16,2)) user_balance
+     , f.currency_id user_balance_currency_id
+     , cast(coalesce(gen_total, 0) / g.rate as numeric(16,2)) total_value
+     , g.currency_id total_value_currency_id
+     , is_balanced
+from owner                      as a
+join ledger                     as b using (ledger_id)
+join ledger_settings            as e using (ledger_id)
+join balanced_ledger            as h using (ledger_id)
+left join gen_total_ledger      as d using (ledger_id)
+left join gen_balance_person    as c using (ledger_id, user_id)
+join currency                   as f on f.currency_id = a.currency_id
+join currency                   as g on g.currency_id = e.total_currency_id
+;
+--gen_balance_person as t
+--join owner on t.user_id = owner.user_id and t.ledger_id = owner.ledger_id
+--join currency as bc on owner.currency_id = bc.currency_id
+--join gen_total_ledger on t.ledger_id = gen_total_ledger.ledger_id
+--join ledger_settings as ls on t.ledger_id = ls.ledger_id
+--join currency as tc on ls.total_currency_id = tc.currency_id
+--join ledger on t.ledger_id = ledger.ledger_id
+--join balanced_ledger as bl on t.ledger_id = bl.ledger_id;
 
 
 -- transactions web view table
