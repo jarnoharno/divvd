@@ -1,6 +1,9 @@
 <div class="container" ng-controller="Ledger">
   <div style="height: 60px">
-    <h2 class="sub-header pull-left" style="margin-top: 0">{{ledger.title}}</h2>
+    <h2 class="sub-header pull-left" style="margin-top: 0"
+			editable-text="ledger.title" onbeforesave="setTitle($data)">
+			{{ledger.title}}
+		</h2>
     <button type="button" class="btn btn-success pull-right">
       Add new transaction
     </button>

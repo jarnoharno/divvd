@@ -43,6 +43,16 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 		then(updateView);
   };
 
+	$scope.setTitle = function(title) {
+		var l = $scope.ledger;
+		return ledger.update({
+			ledger_id: l.ledger_id
+		}, {
+			title: title
+		}).$promise.
+		then(updateView);
+	};
+
   $scope.setBalanceCurrency = function(t, c) {
 		transaction.update_summary({
 			transaction_id: t.transaction_id

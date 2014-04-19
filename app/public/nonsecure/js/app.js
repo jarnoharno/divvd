@@ -5,6 +5,7 @@ var app = angular.module('divvd', [
   'ui.bootstrap',
   'ui.router',
   'ngResource',
+	'xeditable',
   'divvd.services',
   'divvd.controllers'
   //'ngRoute',
@@ -118,10 +119,16 @@ controller('MainCtrl', ['$scope', 'auth', '$state',
       $state.go('guest');
     });
   }
-}]).
-config(['$locationProvider', function($locationProvider) {
+}]);
+
+app.config(['$locationProvider', function($locationProvider) {
   $locationProvider.html5Mode(true).hashPrefix('!');
 }]);
+
+app.run(function(editableOptions) {
+	editableOptions.theme = 'bs3';
+});
+
 //run(['routeHandler', 'auth', function(logoutHandler, auth) {
   // force instantiation of routeHandler
   // authenticate as soon as possible
