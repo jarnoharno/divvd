@@ -7,6 +7,10 @@ app.factory('ledger', ['$resource', function($resource) {
     },
 		summary: {
 			method: 'GET',
+			url: '/api/ledgers/:ledger_id/summary'
+		},
+		transactions_summary: {
+			method: 'GET',
 			url: '/api/ledgers/:ledger_id/transactions/summary',
 			isArray: true
 		},

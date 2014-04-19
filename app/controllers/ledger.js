@@ -229,10 +229,10 @@ exports.ledgers_summary = function(req, res) {
   catch(common.handle(res));
 };
 
-// GET /api/ledgers/:ledger/transactions/summary
+// GET /api/ledgers/:ledger/summary
 //
-// Return a summary of transactions in this ledger from the viewpoint
-// of the current user
+// Return a summary of current users key figures regarding the requested
+// ledger
 
 exports.summary = function(req, res) {
   session.authorize_spoof(req, function(me) {
@@ -243,12 +243,31 @@ exports.summary = function(req, res) {
   then(function(usr) {
     return ledger.summary(req.params.ledger.ledger_id, usr.user_id);
   }).
+  then(function(summary) {
+    res.json(summary);
+  }).
+  catch(common.handle(res));
+};
+
+// GET /api/ledgers/:ledger/transactions/summary
+//
+// Return a summary of current users key figures per transaction regarding
+// the requested ledger
+
+exports.transactions_summary = function(req, res) {
+  session.authorize_spoof(req, function(me) {
+    return  req.params.ledger.owners.reduce(function(prev, owner) {
+              return prev || owner.user_id === me.user_id;
+            }, false);
+  }).
+  then(function(usr) {
+    return ledger.transactions_summary(req.params.ledger.ledger_id, usr.user_id);
+  }).
   then(function(transactions) {
     res.json(transactions);
   }).
   catch(common.handle(res));
 };
-
 
 // PUT /api/ledgers/:ledger/owners/:owner
 //
@@ -270,7 +289,10 @@ var update_owner_schema = {
   "properties": {
     "currency_id": {
       "type": "/positive_integer"
-    }
+    },
+		"total_credit_currency_id": {
+			"type": "/positive_integer"
+		}
   }
 };
 
@@ -287,8 +309,8 @@ exports.update_owner = function(req, res) {
     });
   }).
   then(function() {
-    req.body.user_id = req.params.owner.user_id;
-    return ledger.update_owner(req.params.ledger.ledger_id, req.body);
+    return ledger.update_owner(req.params.ledger.ledger_id,
+			req.params.owner.user_id, req.body);
   }).
   then(function(ledger) {
     res.json(ledger);
@@ -482,11 +504,3 @@ exports.param.owner = function(req, res, next, id) {
   };
   next();
 };
-
-exports.param.transaction = function(req, res, next, id) {
-  req.params.transaction = {
-    transaction_id: id
-  };
-  next();
-};
-

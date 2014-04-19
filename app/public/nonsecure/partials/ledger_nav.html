@@ -6,13 +6,13 @@
     <strong ng-bind="ledger.title"></strong>
   </a>
 </li>
-<li>
+<li ng-show="ledger.title">
   <a ui-sref="member.ledger.currencies({ ledger_id: ledger.ledger_id })"
     ng-click="collapse(true)">
     Currencies
   </a>
 </li>
-<li>
+<li ng-show="ledger.title">
   <a ui-sref="member.ledger.summary({ ledger_id: ledger.ledger_id })"
     ng-click="collapse(true)">
     Summary

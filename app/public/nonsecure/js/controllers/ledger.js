@@ -9,7 +9,7 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 
 	function updateView() {
 		var l = $scope.ledger;
-		ledger.summary({
+		ledger.transactions_summary({
 			ledger_id: l.ledger_id
 		}).$promise.
 		then(function(ts) {
@@ -18,7 +18,16 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 				t.user_balance_currency = l.currencyMap[t.user_balance_currency_id];
 				t.user_credit_currency = l.currencyMap[t.user_credit_currency_id];
 			});
-			$scope.ledger.transactions = ts;
+			l.transactions = ts;
+			return ledger.summary({
+				ledger_id: l.ledger_id
+			}).$promise;
+		}).
+		then(function(s) {
+			s.total_value_currency = l.currencyMap[s.total_value_currency_id];
+			s.user_balance_currency = l.currencyMap[s.user_balance_currency_id];
+			s.user_credit_currency = l.currencyMap[s.user_credit_currency_id];
+			l.summary = s;
 		});
 	}
 
@@ -29,6 +38,7 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 
   $scope.delete = function(t) {
   };
+
   $scope.setBalanceCurrency = function(t, c) {
 		transaction.update_summary({
 			transaction_id: t.transaction_id
@@ -52,5 +62,35 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 			owner_total_credit_currency_id: c.currency_id
 		}).$promise.
 		then(updateView);
+	};
+
+  $scope.setSumBalanceCurrency = function(c) {
+		var s = $scope.ledger.summary;
+    ledger.update_owner({
+      ledger_id: s.ledger_id,
+      user_id: s.user_id
+    }, {
+			currency_id: c.currency_id
+    }).$promise.
+    then(updateView);
+  };
+  $scope.setSumTotalCurrency = function(c) {
+		var s = $scope.ledger.summary
+    ledger.update({
+      ledger_id: s.ledger_id
+    }, {
+      total_currency_id: c.currency_id
+    }).$promise.
+    then(updateView);
+  };
+	$scope.setSumCreditCurrency = function(c) {
+		var s = $scope.ledger.summary;
+    ledger.update_owner({
+      ledger_id: s.ledger_id,
+      user_id: s.user_id
+    }, {
+			total_credit_currency_id: c.currency_id
+    }).$promise.
+    then(updateView);
 	};
 }]);

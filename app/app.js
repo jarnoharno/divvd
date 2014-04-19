@@ -80,14 +80,15 @@ app.get     ('/api/ledgers/summary',              ledger.ledgers_summary);
 app.get     ('/api/ledgers/:ledger',              ledger.ledger);
 app.delete  ('/api/ledgers/:ledger',              ledger.delete);
 app.put     ('/api/ledgers/:ledger',              ledger.update);
+app.get     ('/api/ledgers/:ledger/summary',      ledger.summary);
 app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
 app.post    ('/api/ledgers/:ledger/currencies',   ledger.add_currency);
 app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
 app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
 app.get     ('/api/ledgers/:ledger/transactions', ledger.transactions);
 app.post    ('/api/ledgers/:ledger/transactions', ledger.add_transaction);
-app.get			('/api/ledgers/:ledger/transactions/summary', ledger.summary);
-app.param		('t_id',															ledger.param.transaction);
+app.get			('/api/ledgers/:ledger/transactions/summary',
+																									ledger.transactions_summary);
 app.param   ('o',                                 ledger.param.owner);
 app.put     ('/api/ledgers/:ledger/owners/:o',    ledger.update_owner);
 
