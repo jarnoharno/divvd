@@ -34,6 +34,7 @@ body {
 
 .tr-total {
   font-weight: bold;
+  border-top-style: double;
 }
 
 .form-signin {
