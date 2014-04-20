@@ -1,4 +1,32 @@
 <div class="container" ng-controller="Ledgers">
+  <script type="text/ng-template" id="ledgers_add.html">
+    <div class="modal-header">
+      <h3>Add new ledger</h3>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label for="ledgerTitle">Title</label>
+          <input type="text" class="form-control" id="ledgerTitle"
+            placeholder="Enter title" ng-model="ledger.title">
+      </div>
+      <div class="input-group">
+        <label for="ledgerCurrencyCode">Currency code</label>
+          <input type="text" class="form-control" id="ledgerCurrencyCode"
+            placeholder="Enter currency code"
+            ng-model="ledger.total_currency.code">
+      </div>
+      <div class="input-group">
+        <label for="ledgerCurrencyRate">Currency rate</label>
+          <input type="text" class="form-control" id="ledgerCurrencyRate"
+            placeholder="Enter currency rate"
+            ng-model="ledger.total_currency.rate">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="ok()">OK</button>
+      <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+    </div>
+  </script>
   <div style="height: 60px">
     <h2 class="sub-header pull-left" style="margin-top: 0">
       {{user.username}}'s ledgers

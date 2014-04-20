@@ -1,6 +1,6 @@
 module.exports = User;
 
-function User(username, role, user_id, currency_id) {
+function User(username, role, user_id, currency_id, total_credit_currency_id) {
   if (username && typeof username !== 'string') {
     var o = username;
     username = o.username;
@@ -14,5 +14,8 @@ function User(username, role, user_id, currency_id) {
   // per ledger setting
   if (currency_id) {
     this.currency_id = currency_id;
+  }
+  if (total_credit_currency_id) {
+    this.total_credit_currency_id = total_credit_currency_id;
   }
 }

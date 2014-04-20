@@ -1,5 +1,9 @@
 app.factory('ledger', ['$resource', function($resource) {
   return $resource('/api/ledgers/:ledger_id', {}, {
+    create: {
+      method: 'POST',
+      url: '/api/ledgers'
+    },
     ledgers_summary: {
       method: 'GET',
       url: '/api/ledgers/summary',

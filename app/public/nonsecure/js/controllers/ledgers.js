@@ -2,9 +2,26 @@
 
 /* Controllers */
 
+app.controller('Ledgers.add', ['$scope', '$modalInstance',
+function($scope, $modalInstance) {
+  $scope.ledger = {
+    title: 'New ledger',
+    total_currency: {
+      code: '€',
+      rate: 1.0
+    }
+  };
+  $scope.ok = function () {
+    $modalInstance.close($scope.ledger);
+  };
+  $scope.cancel = function () {
+    $modalInstance.dismiss();
+  };
+}]);
+
 angular.module('divvd.controllers.ledgers', []).
-controller('Ledgers', ['$scope', 'ledger', '$q', 'auth',
-    function($scope, ledger, $q, auth) {
+controller('Ledgers', ['$scope', 'ledger', '$q', 'auth', '$modal', '$state',
+    function($scope, ledger, $q, auth, $modal, $state) {
   $scope.user = auth.data.user;
   $scope.balancedClass = function(b) {
     if (b) {
@@ -12,6 +29,21 @@ controller('Ledgers', ['$scope', 'ledger', '$q', 'auth',
     } else {
       return 'text-danger td-no';
     }
+  };
+  $scope.add = function() {
+    $modal.open({
+      templateUrl: 'ledgers_add.html',
+      controller: 'Ledgers.add'
+    }).result.
+    then(function(l) {
+      l.user_id = $scope.user.user_id;
+      return ledger.create(l).$promise;
+    }).
+    then(function(l) {
+      return $state.go('member.ledger', {
+        ledger_id: l.ledger_id
+      });
+    });
   };
   $scope.delete = function(l) {
     ledger.delete({
