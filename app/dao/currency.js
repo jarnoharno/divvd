@@ -9,7 +9,7 @@ var dao = module.exports = {};
 
 dao.find_by_ledger_id = function(ledger_id, db) {
   db = db || qdb;
-  return db.query('select code, rate, ledger_id, currency_id from currency where ledger_id = $1;',
+  return db.query('select * from currency_active where ledger_id = $1 order by currency_id;',
       [ledger_id]).
   then(util.construct_set(Currency));
 };

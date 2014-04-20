@@ -27,7 +27,9 @@ body {
 
 .input-sm.table-input {
   margin: -5px;
+  height: 24px;
   font-size: 14px;
+  padding-top: 1px;
 }
 
 .tr-total {

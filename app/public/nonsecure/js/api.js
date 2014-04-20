@@ -35,6 +35,15 @@ app.factory('ledger', ['$resource', function($resource) {
     update_owner: {
       method: 'PUT',
       url: '/api/ledgers/:ledger_id/owners/:user_id'
+    },
+    currencies: {
+      method: 'GET',
+      url: '/api/ledgers/:ledger_id/currencies',
+      isArray: true
+    },
+    create_currency: {
+      method: 'POST',
+      url: '/api/ledgers/:ledger_id/currencies'
     }
   });
 }]);
@@ -46,4 +55,12 @@ app.factory('transaction', ['$resource', function($resource) {
 			url: '/api/transactions/:transaction_id/summary'
 		}
 	});
+}]);
+
+app.factory('currency', ['$resource', function($resource) {
+  return $resource('/api/currencies/:currency_id', {}, {
+    update: {
+      method: 'PUT'
+    }
+  });
 }]);

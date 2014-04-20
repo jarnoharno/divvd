@@ -52,7 +52,6 @@ common.require_authentication = function(req, res, next) {
     return common.parse_basic_auth(req);
   }).
   then(function(credentials) {
-    console.log(credentials);
     return user.find_username_and_password(credentials);
   }).
   then(function(usr) {
@@ -67,7 +66,6 @@ common.is_logged = function(req) {
 };
 
 common.error = function(res, err) {
-  console.error(err.message);
   res.json(500, { message: err.message });
 };
 

@@ -159,15 +159,6 @@ left join gen_balance_person    as c using (ledger_id, user_id)
 join currency                   as f on f.currency_id = a.currency_id
 join currency                   as g on g.currency_id = e.total_currency_id
 ;
---gen_balance_person as t
---join owner on t.user_id = owner.user_id and t.ledger_id = owner.ledger_id
---join currency as bc on owner.currency_id = bc.currency_id
---join gen_total_ledger on t.ledger_id = gen_total_ledger.ledger_id
---join ledger_settings as ls on t.ledger_id = ls.ledger_id
---join currency as tc on ls.total_currency_id = tc.currency_id
---join ledger on t.ledger_id = ledger.ledger_id
---join balanced_ledger as bl on t.ledger_id = bl.ledger_id;
-
 
 -- transactions web view table
 -- [{
@@ -222,15 +213,6 @@ join currency as g on e.owner_total_credit_currency_id  = g.currency_id
 join currency as h on e.total_value_currency_id         = h.currency_id
 ;
   
---join transaction as b using (transaction_id)
-
-
---join owner_transaction_settings as c using (transaction_id, owner_id)
---join currency as d on c.owner_balance_currency_id = d.currency_id
---join currency as e on c.owner_total_credit_currency_id = e.currency_id
---join gen_total_credit_transaction as f using (transaction_id)
---join currency as g on c.total_value_currency_id = g.currency_id;
-
 -- ledger summary web view table
 -- [{
 --   ledger_id:integer
@@ -263,3 +245,64 @@ left join gen_total_credit_person using (person_id)
 join owner as o using (ledger_id, user_id)
 join currency as c on o.total_credit_currency_id = c.currency_id;
 
+-- all currencies in use per ledger
+drop      view if exists  active_currency_ledger;
+create    view            active_currency_ledger as
+select    ledger_id, currency_id from owner
+group by  ledger_id, currency_id
+union
+select    ledger_id, total_credit_currency_id from owner
+group by  ledger_id, total_credit_currency_id
+union
+select    ledger_id, total_currency_id from ledger_settings
+group by  ledger_id, total_currency_id
+union
+select    ledger_id, currency_id from person
+group by  ledger_id, currency_id
+union
+select    ledger_id, currency_id from transaction
+group by  ledger_id, currency_id
+union
+select    ledger_id, owner_balance_currency_id
+from      owner_transaction_settings
+join      transaction using (transaction_id)
+group by  ledger_id, owner_balance_currency_id
+union
+select    ledger_id, total_value_currency_id
+from      owner_transaction_settings
+join      transaction using (transaction_id)
+group by  ledger_id, total_value_currency_id
+union
+select    ledger_id, owner_total_credit_currency_id
+from      owner_transaction_settings
+join      transaction using (transaction_id)
+group by  ledger_id, owner_total_credit_currency_id
+union
+select    ledger_id, credit_currency_id
+from      participant
+join      transaction using (transaction_id)
+group by  ledger_id, credit_currency_id
+union
+select    ledger_id, debit_currency_id
+from      participant
+join      transaction using (transaction_id)
+group by  ledger_id, debit_currency_id
+union
+select    ledger_id, shared_debt_currency_id
+from      participant
+join      transaction using (transaction_id)
+group by  ledger_id, shared_debt_currency_id
+union
+select    ledger_id, amount.currency_id
+from      amount
+join      participant using (participant_id)
+join      transaction using (transaction_id)
+group by  ledger_id, amount.currency_id
+;
+
+create view currency_active as
+select a.*
+     , b.currency_id is not null active
+from currency                     as a 
+left join active_currency_ledger  as b using (ledger_id, currency_id)
+;

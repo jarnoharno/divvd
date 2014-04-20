@@ -74,15 +74,16 @@ config(['$stateProvider', '$urlRouterProvider',
     url: 'ledgers/:ledger_id',
     resolve: {
       'currentLedger': function(ledger, $stateParams) {
-				var led = ledger.get($stateParams);
-				led.$promise.
-				then(function(l) {
-					// currency map
-					l.currencyMap = {};
-					l.currencies.forEach(function(c) {
-						l.currencyMap[c.currency_id] = c;
-					});
-				});
+        var led = ledger.get($stateParams);
+        led.$promise.then(function(l) {
+          l.currencyMap = function(currency_id) {
+            for (var i = 0; i < led.currencies.length; ++i) {
+              if (led.currencies[i].currency_id == currency_id) {
+                return led.currencies[i];
+              }
+            }
+          };
+        });
         return led;
       }
     },
@@ -102,7 +103,15 @@ config(['$stateProvider', '$urlRouterProvider',
     }
   }).
   state('member.ledger.currencies', {
-    url: '/currencies'
+    url: '/currencies',
+    views: {
+      'body@': {
+        templateUrl: '/partials/currencies.html',
+        controller: function($scope, currentLedger) {
+          $scope.ledger = currentLedger;
+        }
+      }
+    }
   }).
   state('member.ledger.summary', {
     url: '/summary'

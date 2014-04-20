@@ -49,9 +49,9 @@ dao.create = function(props, db) {
         merge(props.total_currency, { ledger_id: this.ledger_id }), db);
     }).
     then(function(currency) {
+      currency.active = true;
       this.total_currency_id = currency.currency_id;
       this.currencies = [currency];
-      console.log(this);
     }).
 
     // insert settings

@@ -1,34 +1,81 @@
-<div style="height: 60px">
-  <h2 class="sub-header pull-left" style="margin-top: 0">household etc. currencies</h2>
-  <button type="button" class="btn btn-success pull-right">Add new currency</button>
-</div>
-<div class="table-responsive">
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Action</th>
-        <th>Code</th>
-        <th>Symbol</th>
-        <th>Rate</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <button disabled type="button"
-            class="btn btn-primary btn-danger btn-xs">
-            <i class="fa fa-trash-o fa-fw"></i> Delete
-          </button>
-        </td>
-        <td><input type="text" class="form-control input-sm table-input"
-          value="EUR"></td>
-        <td><input type="text"
-          class="form-control input-sm table-input"
-          style="width:70px;"
-          value="€"></td>
-        <td><input type="text" class="form-control input-sm table-input"
-          value="1.00000000"></td>
-      </tr>
-    </tbody>
-  </table>
+<div class="container" ng-controller="Currencies">
+  <script type="text/ng-template" id="currencies_add.html">
+    <div class="modal-header">
+      <h3>Add new currency</h3>
+    </div>
+    <div class="modal-body">
+      <div class="input-group">
+        <label for="currencyCode">Title</label>
+          <input type="text" class="form-control" id="currencyCode"
+            placeholder="Enter currency code" ng-model="currency.code">
+      </div>
+      <div class="input-group">
+        <label for="currencyRate">Currency rate</label>
+          <input type="text" class="form-control" id="currencyRate"
+            placeholder="Enter currency rate"
+            ng-model="currency.rate">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="ok()">OK</button>
+      <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+    </div>
+  </script>
+  <div style="height: 60px">
+    <h2 class="sub-header pull-left" style="margin-top: 0">{{ledger.title}} currencies</h2>
+    <button type="button" class="btn btn-success pull-right"
+      ng-click="add()">
+      Add new currency
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="width:12%">Action</th>
+          <th style="width:44%">Code</th>
+          <!--<th>Symbol</th>-->
+          <th style="width:44%">Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="currency in ledger.currencies">
+          <td>
+            <button ng-disabled="currency.active"
+              type="button" ng-click="delete(currency)"
+              class="btn btn-primary btn-danger btn-xs">
+              <i class="fa fa-trash-o fa-fw"></i> Delete
+            </button>
+          </td>
+          <td>
+            <span class="sub-header pull-left"
+              editable-text="currency.code"
+              onbeforesave="setCode(currency, $data)"
+              e-class="input-sm table-input" buttons="no">
+              {{currency.code}}
+            </span>
+          </td>
+          <!--
+          <td>
+            <span class="sub-header pull-left"
+              editable-text="currency.symbol"
+              onbeforesave="setSymbol(currency, $data)"
+              e-class="input-sm table-input" buttons="no">
+              {{currency.symbol}}
+            </span>
+          </td>
+          -->
+          <td>
+            <span class="sub-header pull-left"
+              editable-number="currency.rate"
+              e-step=0.00000001
+              onbeforesave="setRate(currency, $data)"
+              e-class="input-sm table-input" buttons="no">
+              {{currency.rate}}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

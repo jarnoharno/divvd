@@ -3,7 +3,7 @@
 /* Controllers */
 
 app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
-    function($scope, ledger, $q, auth, transaction) {
+function($scope, ledger, $q, auth, transaction) {
 
   $scope.user = auth.data.user;
 
@@ -14,9 +14,9 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 		}).$promise.
 		then(function(ts) {
 			ts.forEach(function(t) {
-				t.total_value_currency = l.currencyMap[t.total_value_currency_id];
-				t.user_balance_currency = l.currencyMap[t.user_balance_currency_id];
-				t.user_credit_currency = l.currencyMap[t.user_credit_currency_id];
+				t.total_value_currency = l.currencyMap(t.total_value_currency_id);
+				t.user_balance_currency = l.currencyMap(t.user_balance_currency_id);
+				t.user_credit_currency = l.currencyMap(t.user_credit_currency_id);
 			});
 			l.transactions = ts;
 			return ledger.summary({
@@ -24,9 +24,9 @@ app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
 			}).$promise;
 		}).
 		then(function(s) {
-			s.total_value_currency = l.currencyMap[s.total_value_currency_id];
-			s.user_balance_currency = l.currencyMap[s.user_balance_currency_id];
-			s.user_credit_currency = l.currencyMap[s.user_credit_currency_id];
+			s.total_value_currency = l.currencyMap(s.total_value_currency_id);
+			s.user_balance_currency = l.currencyMap(s.user_balance_currency_id);
+			s.user_credit_currency = l.currencyMap(s.user_credit_currency_id);
 			l.summary = s;
 		});
 	}

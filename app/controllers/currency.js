@@ -63,7 +63,7 @@ exports.delete = function(req, res) {
 
 // PUT /api/currencies/:currency
 //
-// Update ledger
+// Update currency
 //
 // \post_param {
 //  code:string
