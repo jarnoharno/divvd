@@ -7,7 +7,8 @@ var app = angular.module('divvd', [
   'ngResource',
 	'xeditable',
   'divvd.services',
-  'divvd.controllers'
+  'divvd.controllers',
+  'googlechart'
   //'ngRoute',
   //'divvd.api',
   //'divvd.filters',
@@ -114,7 +115,15 @@ config(['$stateProvider', '$urlRouterProvider',
     }
   }).
   state('member.ledger.summary', {
-    url: '/summary'
+    url: '/summary',
+    views: {
+      'body@': {
+        templateUrl: '/partials/summary.html',
+        controller: function($scope, currentLedger) {
+          $scope.ledger = currentLedger;
+        }
+      }
+    }
   }).
   state('member.ledger.transaction', {
     url: '/transactions/:transaction_id'

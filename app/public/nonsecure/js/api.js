@@ -44,6 +44,11 @@ app.factory('ledger', ['$resource', function($resource) {
     create_currency: {
       method: 'POST',
       url: '/api/ledgers/:ledger_id/currencies'
+    },
+    balances: {
+      method: 'GET',
+      url: '/api/ledgers/:ledger_id/balances',
+      isArray: true
     }
   });
 }]);

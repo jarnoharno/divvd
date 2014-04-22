@@ -246,7 +246,7 @@ join owner as o using (ledger_id, user_id)
 join currency as c on o.total_credit_currency_id = c.currency_id;
 
 -- all currencies in use per ledger
-drop      view if exists  active_currency_ledger;
+drop      view if exists  active_currency_ledger cascade;
 create    view            active_currency_ledger as
 select    ledger_id, currency_id from owner
 group by  ledger_id, currency_id
@@ -305,4 +305,17 @@ select a.*
      , b.currency_id is not null active
 from currency                     as a 
 left join active_currency_ledger  as b using (ledger_id, currency_id)
+;
+
+-- balance view for web
+-- there should be a record for each person
+create view balance_web_view as
+select cast(coalesce(gen_balance, 0) / c.rate as numeric(16,2)) user_balance
+     , c.currency_id
+     , name
+     , user_id
+     , a.ledger_id
+     , person_id
+from gen_balance_person as a
+join currency           as c using (currency_id)
 ;

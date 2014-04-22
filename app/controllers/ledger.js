@@ -236,7 +236,8 @@ exports.ledgers_summary = function(req, res) {
 
 exports.summary = function(req, res) {
   session.authorize_spoof(req, function(me) {
-    return  req.params.ledger.owners.reduce(function(prev, owner) {
+    return  me.role.match(/admin|debug/) ||
+            req.params.ledger.owners.reduce(function(prev, owner) {
               return prev || owner.user_id === me.user_id;
             }, false);
   }).
@@ -245,6 +246,25 @@ exports.summary = function(req, res) {
   }).
   then(function(summary) {
     res.json(summary);
+  }).
+  catch(common.handle(res));
+};
+// GET /api/ledgers/:ledger/summary
+//
+// Return balances between persons in this ledger
+
+exports.balances = function(req, res) {
+  session.authorize_spoof(req, function(me) {
+    return  me.role.match(/admin|debug/) ||
+            req.params.ledger.owners.reduce(function(prev, owner) {
+              return prev || owner.user_id === me.user_id;
+            }, false);
+  }).
+  then(function() {
+    return ledger.balances(req.params.ledger.ledger_id);
+  }).
+  then(function(b) {
+    res.json(b);
   }).
   catch(common.handle(res));
 };

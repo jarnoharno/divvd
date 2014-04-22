@@ -225,6 +225,15 @@ dao.summary = function(ledger_id, user_id, db) {
 	then(util.first_row);
 };
 
+dao.balances = function(ledger_id, db) {
+	db = db || qdb;
+	return db.query('select * from balance_web_view where ledger_id = $1;',
+			[ledger_id]).
+	then(function(result) {
+    return result.rows;
+  });
+};
+
 dao.transactions_summary = function(ledger_id, user_id, db) {
 	db = db || qdb;
 	return db.query('select * from transactions_web_view where ledger_id = $1 and user_id = $2;',

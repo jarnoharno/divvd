@@ -81,6 +81,7 @@ app.get     ('/api/ledgers/:ledger',              ledger.ledger);
 app.delete  ('/api/ledgers/:ledger',              ledger.delete);
 app.put     ('/api/ledgers/:ledger',              ledger.update);
 app.get     ('/api/ledgers/:ledger/summary',      ledger.summary);
+app.get     ('/api/ledgers/:ledger/balances',     ledger.balances);
 app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
 app.post    ('/api/ledgers/:ledger/currencies',   ledger.add_currency);
 app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
