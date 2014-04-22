@@ -44,9 +44,46 @@
       <h3 class="panel-title">Balances</h3>
     </div>
     <div class="panel-body">
-      Panel content
+      <div class="row">
+        <div class="col-md-4">
+          <dl class="dl-horizontal" style="margin-bottom: 0px">
+            <dt>Your balance:</dt>
+            <dd class="dropdown">
+              {{ledger.summary.user_balance}}
+              <a href class="dropdown-toggle">
+                {{ledger.summary.user_balance_currency.code}}
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li ng-repeat="currency in ledger.currencies">
+                  <a ng-bind="currency.code"
+                    ng-click="setSumBalanceCurrency(currency)">
+                  </a>
+                </li>
+              </ul>
+            </dd>
+            <dt>Total value:</dt>
+            <dd class="dropdown">
+              {{ledger.summary.total_value}}
+              <a href class="dropdown-toggle">
+                {{ledger.summary.total_value_currency.code}}
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li ng-repeat="currency in ledger.currencies">
+                  <a ng-bind="currency.code"
+                    ng-click="setSumTotalCurrency(currency)">
+                  </a>
+                </li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+        <div class="col-md-8">
+          <div google-chart chart="chart" style="{{chart.cssStyle}}">
+        </div>
+      </div>
     </div>
   </div>
 
-  <div google-chart chart="chart" style="{{chart.cssStyle}}"/>
 </div>

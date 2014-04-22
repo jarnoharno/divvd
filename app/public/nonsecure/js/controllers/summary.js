@@ -48,121 +48,43 @@ function($scope, ledger) {
     then(updateView);
   };
 
-  $scope.chart = {
-    "type": "ColumnChart",
-    "cssStyle": "height:200px; width:300px;",
-    "data": {
-      "cols": [
-        {
-          "id": "month",
-          "label": "Month",
-          "type": "string",
-          "p": {}
-        },
-        {
-          "id": "laptop-id",
-          "label": "Laptop",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "desktop-id",
-          "label": "Desktop",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "server-id",
-          "label": "Server",
-          "type": "number",
-          "p": {}
-        },
-        {
-          "id": "cost-id",
-          "label": "Shipping",
-          "type": "number"
-        }
-      ],
-      "rows": [
-        {
-          "c": [
-            {
-              "v": "January"
-            },
-            {
-              "v": 19,
-              "f": "42 items"
-            },
-            {
-              "v": 12,
-              "f": "Ony 12 items"
-            },
-            {
-              "v": 7,
-              "f": "7 servers"
-            },
-            {
-              "v": 4
-            }
-          ]
-        },
-        {
-          "c": [
-            {
-              "v": "February"
-            },
-            {
-              "v": 13
-            },
-            {
-              "v": 1,
-              "f": "1 unit (Out of stock this month)"
-            },
-            {
-              "v": 12
-            },
-            {
-              "v": 2
-            }
-          ]
-        },
-        {
-          "c": [
-            {
-              "v": "March"
-            },
-            {
-              "v": 24
-            },
-            {
-              "v": 0
-            },
-            {
-              "v": 11
-            },
-            {
-              "v": 6
-            }
-          ]
-        }
-      ]
-    },
-    "options": {
-      "title": "Sales per month",
-      "isStacked": "true",
+  var chart1 = {};
+  chart1.type = "BarChart";
+  //chart1.cssStyle = "height:200px; width:300px;";
+  chart1.data = {"cols": [
+      {id: "month", label: "Month", type: "string"},
+      {id: "laptop-id", label: "Laptop", type: "number"},
+  ], "rows": [
+      {c: [
+          {v: "Jarno"},
+          {v: 30, f: "42 items"},
+      ]},
+      {c: [
+          {v: "Tommi"},
+          {v: -10},
+      ]},
+      {c: [
+          {v: "Hartsi"},
+          {v: -20, p:{style: 'border: 1px solid green;', color:'red'}},
+
+      ]}
+  ]};
+
+  chart1.options = {
+      "title": "Percentual balances",
       "fill": 20,
       "displayExactValues": true,
       "vAxis": {
-        "title": "Sales unit",
-        "gridlines": {
-          "count": 6
-        }
+          "title": "Person", "gridlines": {"count": 6}
       },
       "hAxis": {
-        "title": "Date"
-      }
-    },
-    "formatters": {},
-    "displayed": true
+          "title": "Percentage of total value"
+      },
+      'legend':'none'
   };
+
+  chart1.formatters = {};
+
+  $scope.chart = chart1;
+
 }]);
