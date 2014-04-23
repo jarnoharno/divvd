@@ -2,8 +2,8 @@
 
 /* Controllers */
 
-app.controller('Summary', ['$scope', 'ledger',
-function($scope, ledger) {
+app.controller('Summary', ['$scope', 'ledger', 'person',
+function($scope, ledger, person) {
   
   var chart1 = {};
   chart1.type = "BarChart";
@@ -96,5 +96,12 @@ function($scope, ledger) {
     then(updateView);
   };
 
-
+  $scope.setBalanceCurrency = function(b, c) {
+    person.update({
+      person_id: b.person_id
+    }, {
+      currency_id: c.currency_id
+    }).$promise.
+    then(updateView);
+  }
 }]);

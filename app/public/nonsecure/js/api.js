@@ -69,3 +69,11 @@ app.factory('currency', ['$resource', function($resource) {
     }
   });
 }]);
+
+app.factory('person', ['$resource', function($resource) {
+  return $resource('/api/persons/:person_id', {}, {
+    update: {
+      method: 'PUT'
+    }
+  });
+}]);

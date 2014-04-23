@@ -66,9 +66,8 @@ exports.delete = function(req, res) {
 // Update ledger
 //
 // \post_param {
-//  code:string
-//  rate:number
-//  ledger_id:integer
+//  currency_id:integer
+//  user_id:integer
 // }
 // \return {
 // }
@@ -78,11 +77,11 @@ var update_arg_schema = {
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "code": {
-      "type": "string"
+    "currency_id": {
+      "$ref": "/positive_integer"
     },
-    "rate": {
-      "$ref": "/positive_number"
+    "user_id": {
+      "$ref": "/positive_integer"
     }
   }
 };
