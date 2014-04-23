@@ -227,7 +227,7 @@ dao.summary = function(ledger_id, user_id, db) {
 
 dao.balances = function(ledger_id, db) {
 	db = db || qdb;
-	return db.query('select * from balance_web_view where ledger_id = $1;',
+	return db.query('select * from balance_web_view where ledger_id = $1 order by rel_user_balance desc;',
 			[ledger_id]).
 	then(function(result) {
     return result.rows;

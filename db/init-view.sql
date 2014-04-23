@@ -310,7 +310,9 @@ left join active_currency_ledger  as b using (ledger_id, currency_id)
 -- balance view for web
 -- there should be a record for each person
 create view balance_web_view as
-select cast(coalesce(gen_balance, 0) / c.rate as numeric(16,2)) user_balance
+select gen_balance                                              gen_user_balance
+     , gen_balance / t.gen_total                                rel_user_balance
+     , cast(coalesce(gen_balance, 0) / c.rate as numeric(16,2)) user_balance
      , c.currency_id
      , name
      , user_id
@@ -318,4 +320,5 @@ select cast(coalesce(gen_balance, 0) / c.rate as numeric(16,2)) user_balance
      , person_id
 from gen_balance_person as a
 join currency           as c using (currency_id)
+join gen_total_ledger   as t on a.ledger_id = t.ledger_id
 ;

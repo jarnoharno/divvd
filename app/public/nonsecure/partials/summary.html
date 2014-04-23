@@ -47,32 +47,19 @@
       <div class="row">
         <div class="col-md-4">
           <dl class="dl-horizontal" style="margin-bottom: 0px">
-            <dt>Your balance:</dt>
-            <dd class="dropdown">
-              {{ledger.summary.user_balance}}
+            <dt ng-repeat-start="balance in ledger.balances">
+              {{balance.name}}
+            </dt>
+            <dd class="dropdown" ng-repeat-end>
+              {{balance.user_balance}}
               <a href class="dropdown-toggle">
-                {{ledger.summary.user_balance_currency.code}}
+                {{balance.currency.code}}
                 <span class="caret"></span>
               </a>
               <ul class="dropdown-menu">
                 <li ng-repeat="currency in ledger.currencies">
                   <a ng-bind="currency.code"
-                    ng-click="setSumBalanceCurrency(currency)">
-                  </a>
-                </li>
-              </ul>
-            </dd>
-            <dt>Total value:</dt>
-            <dd class="dropdown">
-              {{ledger.summary.total_value}}
-              <a href class="dropdown-toggle">
-                {{ledger.summary.total_value_currency.code}}
-                <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu">
-                <li ng-repeat="currency in ledger.currencies">
-                  <a ng-bind="currency.code"
-                    ng-click="setSumTotalCurrency(currency)">
+                    ng-click="setBalanceCurrency(balance, currency)">
                   </a>
                 </li>
               </ul>
