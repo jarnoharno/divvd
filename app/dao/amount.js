@@ -17,7 +17,8 @@ var orm = shitorm({
   props: [
     'amount',
     'currency_id',
-    'participant_id'
+    'transaction_id',
+    'person_id'
   ],
   pk: 'amount_id',
   table: 'amount',
@@ -28,9 +29,9 @@ dao.create = orm.create;
 dao.update = orm.update;
 dao.delete = orm.delete;
 dao.find = orm.find;
-dao.find_by_participant_id = function(participant_id, db) {
+dao.find_by_transaction_id = function(participant_id, db) {
   db = db || qdb;
-  return orm.find_by('participant_id', participant_id, db);
+  return orm.find_by('transaction_id', participant_id, db);
 };
 
 dao.find_with_owners = function(amount_id, db) {
@@ -42,8 +43,8 @@ dao.find_with_owners = function(amount_id, db) {
     }).
     then(function(amount) {
       this.amount = amount;
-      return db.query('select user_id from owner natural join transaction natural join participant where participant_id = $1;',
-          [amount.participant_id]);
+      return db.query('select user_id from owner join transaction using (ledger_id) where transaction_id = $1;',
+          [amount.transaction_id]);
     }).
     then(function(result) {
       this.owners = result.rows.map(function(row) {

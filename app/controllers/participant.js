@@ -61,19 +61,7 @@ var participant_arg_schema = {
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "share_debt": {
-      "type": "boolean"
-    },
-    "credit_currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "debit_currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "shared_debt_currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "balance_currency_id": {
+    "currency_id": {
       "$ref": "/positive_integer"
     },
     "person_id": {
@@ -105,51 +93,6 @@ exports.put = function(req, res) {
   }).
   catch(common.handle(res));
 };
-
-// TODO credentials check
-
-exports.amounts = function(req, res) {
-  res.json(req.params.participant.amounts);
-};
-
-var amount_arg_schema = {
-  "id": "/amount_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "amount": {
-      "type": "number"
-    },
-    "currency_id": {
-      "$ref": "/positive_integer"
-    }
-  }
-};
-
-exports.add_amount = function(req, res) {
-  Promise.try(function() {
-    var arg = req.body;
-    if (!validate(arg, amount_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    arg.currency_id = arg.currency_id ||
-        req.params.participant.balance_currency_id;
-    arg.participant_id = req.params.participant.participant_id;
-    return session.authorize(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.owners.reduce(function(prev, user_id) {
-                return prev || user_id === me.user_id;
-              }, false);
-    }).
-    then(function() {
-      return amount.create(arg);
-    });
-  }).
-  then(function(amount) {
-    res.json(amount);
-  }).
-  catch(common.handle(res));
-}
 
 // Parses :participant GET parameter
 // we *definitely* don't need this heavy object every time... change this

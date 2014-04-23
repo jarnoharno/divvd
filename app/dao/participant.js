@@ -16,11 +16,7 @@ var dao = module.exports = {};
 
 var orm = shitorm({
   props: [
-    'share_debt',
-    'credit_currency_id',
-    'debit_currency_id',
-    'shared_debt_currency_id',
-    'balance_currency_id',
+    'currency_id',
     'transaction_id',
     'person_id',
   ],
@@ -32,33 +28,19 @@ var orm = shitorm({
 dao.create = orm.create;
 dao.update = orm.update;
 dao.delete = orm.delete;
+
 dao.find_by_transaction_id = function(transaction_id, db) {
   db = db || qdb;
-  return db.transaction(function(db) {
-    return orm.find_by('transaction_id', transaction_id, db).
-    then(function(participants) {
-      return Promise.all(participants.map(fetch_amounts(db)));
-    });
-  });
+  return db.query('select * from participant_view where transaction_id = $1 order by participant_id;',
+      [transaction_id]).
+  then(util.construct_set(Participant));
 };
-
 dao.find = function(participant_id, db) {
   db = db || qdb;
-  return db.transaction(function(db) {
-    return orm.find(participant_id, db).
-    then(fetch_amounts(db));
-  });
+  return db.query('select * from participant_view where participant_id = $1;',
+      [participant_id]).
+  then(util.construct(Participant));
 };
-
-function fetch_amounts(db) {
-  return function(participant) {
-    return amount.find_by_participant_id(participant.participant_id, db).
-    then(function(amounts) {
-      participant.amounts = amounts;
-      return participant;
-    });
-  }
-}
 
 dao.find_with_owners = function(participant_id, db) {
   db = db || qdb;

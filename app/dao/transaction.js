@@ -1,6 +1,7 @@
 var Ledger = require('../models/ledger');
 var currency = require('./currency');
 var user = require('./user');
+var amount = require('./amount');
 var person = require('./person');
 var Hox = require('../lib/hox');
 var Promise = require('bluebird');
@@ -36,21 +37,24 @@ dao.create = function(props, db) {
     return orm.create(props, db).
     then(function(transaction) {
 
+      // create settings for every owner
+
+      return db.query(
+          'insert into owner_transaction_settings (owner_id, transaction_id, ' +
+          'owner_balance_currency_id, total_value_currency_id, ' +
+          'owner_total_credit_currency_id) select owner_id, $1, $2, $2, $2 ' +
+          'from owner where ledger_id = $3;',
+          [transaction.transaction_id,
+          transaction.currency_id,
+          transaction.ledger_id]).
+
       // create new participant for every person in the ledger
 
-      return db.query('select person_id from person where ledger_id = $1;',
-          [transaction.ledger_id]).
-      then(function(result) {
-        return Promise.all(result.rows.map(function(row) {
-          return participant.create({
-            credit_currency_id: currency_id,
-            debit_currency_id: currency_id,
-            shared_debt_currency_id: currency_id,
-            balance_currency_id: currency_id,
-            transaction_id: transaction.transaction_id,
-            person_id: row.person_id
-          }, db);
-        }));
+      then(function() {
+        return db.query(
+            'insert into participant (currency_id, transaction_id, person_id) '+
+            'select $1, $2, person_id from person where ledger_id = $3;',
+            [transaction.ledger_id]);
       }).
       then(function(participants) {
         transaction.participants = participants;
@@ -79,26 +83,33 @@ dao.update = orm.update;
 dao.delete = orm.delete;
 
 dao.find_by_ledger_id = function(ledger_id, db) {
-  return orm.find_by('ledger_id', ledger_id, db);
+  db = db || qdb;
+  return db.query('select * from transaction_view where ledger_id = $1;',
+      [ledger_id]).
+  then(util.construct_set(Transaction));
 };
 
 dao.find = function(transaction_id, db) {
   db = db || qdb;
   return db.transaction(function(db) {
-    return orm.find(transaction_id, db).
-    then(fetch_participants(db));
+    return db.query('select * from transaction_view where transaction_id = $1;',
+        [transaction_id]).
+    then(util.construct(Transaction)).
+    then(function(t) {
+      return participant.find_by_transaction_id(t.transaction_id, db).
+      then(function(p) {
+        t.participants = p;
+      }).
+      then(function() {
+        return amount.find_by_transaction_id(t.transaction_id, db);
+      }).
+      then(function(a) {
+        t.amounts = a;
+        return t;
+      });
+    }); 
   });
 };
-
-function fetch_participants(db) {
-  return function(transaction) {
-    return participant.find_by_transaction_id(transaction.transaction_id, db).
-    then(function(participants) {
-      transaction.participants = participants;
-      return transaction;
-    });
-  }
-}
 
 dao.find_with_owners = function(transaction_id, db) {
   db = db || qdb;

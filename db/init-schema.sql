@@ -170,27 +170,9 @@ create table owner_transaction_settings (
   unique (owner_id, transaction_id)
 );
 
+-- shared debt
 create table participant (
-  share_debt boolean
-    default true
-    not null
-    ,
-  -- currency for total credit
-  credit_currency_id integer
-    -- null
-    references currency on delete set null
-    ,
-  -- currency for total debit
-  debit_currency_id integer
-    -- null
-    references currency on delete set null
-    ,
-  -- currency for shared debt
-  shared_debt_currency_id integer
-    -- null
-    references currency on delete set null
-    ,
-  balance_currency_id integer
+  currency_id integer
     -- null
     references currency on delete set null
     ,
@@ -217,9 +199,13 @@ create table amount (
     -- null
     references currency on delete set null
     ,
-  participant_id integer
+  transaction_id integer
     not null
-    references participant on delete cascade
+    references transaction on delete cascade
+    ,
+  person_id integer
+    not null
+    references person on delete cascade
     ,
   amount_id serial primary key
 );

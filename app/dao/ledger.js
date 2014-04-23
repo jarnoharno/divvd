@@ -268,7 +268,7 @@ function insert_ledger(title, db) {
 }
 
 function insert_owner(user_id, ledger_id, currency_id, db) {
-  return db.query('insert into owner (user_id, ledger_id, currency_id, total_credit_currency_id) values ($1, $2, $3, $3) returning user_id, ledger_id, currency_id, total_credit_currency_id;',
+  return db.query('insert into owner (user_id, ledger_id, currency_id, total_credit_currency_id) values ($1, $2, $3, $3) returning *;',
       [user_id, ledger_id, currency_id]).
   then(util.first_row);
 }

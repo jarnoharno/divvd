@@ -107,6 +107,7 @@ app.param   ('t',                                 transaction.param);
 app.get     ('/api/transactions/:t',              transaction.get);
 app.delete  ('/api/transactions/:t',              transaction.delete);
 app.put     ('/api/transactions/:t',              transaction.put);
+app.post    ('/api/transactions/:t/amounts',      transaction.add_amount);
 app.put			('/api/transactions/:t/summary',			transaction.update_summary);
 app.get     ('/api/transactions/:t/participants', transaction.participants);
 app.post    ('/api/transactions/:t/participants', transaction.add_participant);
@@ -115,8 +116,6 @@ app.param   ('p',                                 participant.param);
 app.get     ('/api/participants/:p',              participant.get);
 app.delete  ('/api/participants/:p',              participant.delete);
 app.put     ('/api/participants/:p',              participant.put);
-app.get     ('/api/participants/:p/amounts',      participant.amounts);
-app.post    ('/api/participants/:p/amounts',      participant.add_amount);
 
 app.param   ('amount',                            amount.param);
 app.get     ('/api/amounts/:amount',              amount.get);

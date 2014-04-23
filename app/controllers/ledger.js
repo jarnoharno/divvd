@@ -249,7 +249,7 @@ exports.summary = function(req, res) {
   }).
   catch(common.handle(res));
 };
-// GET /api/ledgers/:ledger/summary
+// GET /api/ledgers/:ledger/balances
 //
 // Return balances between persons in this ledger
 

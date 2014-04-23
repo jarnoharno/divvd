@@ -67,7 +67,10 @@ var amount_arg_schema = {
     "currency_id": {
       "$ref": "/positive_integer"
     },
-    "participant_id": {
+    "transaction_id": {
+      "$ref": "/positive_integer"
+    },
+    "person_id": {
       "$ref": "/positive_integer"
     }
   }
@@ -96,8 +99,6 @@ exports.put = function(req, res) {
 };
 
 // Parses :amount GET parameter
-// we *definitely* don't need this heavy object every time... change this
-// behaviour later
 
 exports.param = function(req, res, next, id) {
   amount.find_with_owners(id).
