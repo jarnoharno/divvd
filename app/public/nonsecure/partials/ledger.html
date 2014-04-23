@@ -1,6 +1,6 @@
 <div class="container" ng-controller="Ledger">
-  <div style="height: 60px">
-    <h2 class="sub-header pull-left" style="margin-top: 0"
+  <div class="divvd-header">
+    <h2 class="sub-header pull-left"
 			editable-text="ledger.title" onbeforesave="setTitle($data)">
 			{{ledger.title}}
 		</h2>
@@ -28,7 +28,7 @@
             </button>
           </td>
           <td>
-            <a href="member.ledger.transaction({ ledger_id: ledger.ledger_id, transaction.transaction_id })"
+            <a ui-sref="member.ledger.transaction({ledger_id:ledger.ledger_id,transaction_id:transaction.transaction_id})"
               ng-bind="transaction.description">
             </a>
           </td>

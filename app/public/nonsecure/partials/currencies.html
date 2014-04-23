@@ -5,7 +5,7 @@
     </div>
     <div class="modal-body">
       <div class="input-group">
-        <label for="currencyCode">Title</label>
+        <label for="currencyCode">Currency code</label>
           <input type="text" class="form-control" id="currencyCode"
             placeholder="Enter currency code" ng-model="currency.code">
       </div>
@@ -21,8 +21,8 @@
       <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
     </div>
   </script>
-  <div style="height: 60px">
-    <h2 class="sub-header pull-left" style="margin-top: 0">{{ledger.title}} currencies</h2>
+  <div class="divvd-header">
+    <h2 class="sub-header pull-left">{{ledger.title}} currencies</h2>
     <button type="button" class="btn btn-success pull-right"
       ng-click="add()">
       Add new currency

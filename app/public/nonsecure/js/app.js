@@ -126,7 +126,15 @@ config(['$stateProvider', '$urlRouterProvider',
     }
   }).
   state('member.ledger.transaction', {
-    url: '/transactions/:transaction_id'
+    url: '/transactions/:transaction_id',
+    views: {
+      'body@': {
+        templateUrl: '/partials/transaction.html',
+        controller: function($scope, currentLedger) {
+          $scope.ledger = currentLedger;
+        }
+      }
+    }
   });
 }]).
 controller('MainCtrl', ['$scope', 'auth', '$state',
