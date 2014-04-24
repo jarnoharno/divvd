@@ -2,8 +2,9 @@
 
 /* Controllers */
 
-app.controller('Transaction', ['$scope', 'ledger', '$q', 'auth', 'transaction',
-function($scope, ledger, $q, auth, transaction) {
+app.controller('Transaction',
+    ['$scope', 'ledger', '$q', 'auth', 'transaction', '$stateParams',
+    function($scope, ledger, $q, auth, transaction, $stateParams) {
   
   $scope.today = function() {
     $scope.dt = new Date();
@@ -46,7 +47,7 @@ function($scope, ledger, $q, auth, transaction) {
 
 // timepicker
 
-$scope.mytime = new Date();
+  $scope.mytime = new Date();
 
   $scope.hstep = 1;
   $scope.mstep = 15;
@@ -56,7 +57,7 @@ $scope.mytime = new Date();
     mstep: [1, 5, 10, 15, 25, 30]
   };
 
-  $scope.ismeridian = true;
+  $scope.ismeridian = false;
   $scope.toggleMode = function() {
     $scope.ismeridian = ! $scope.ismeridian;
   };
@@ -76,36 +77,22 @@ $scope.mytime = new Date();
     $scope.mytime = null;
   };
 
-  /*
   $scope.user = auth.data.user;
 
 	function updateView() {
 		var l = $scope.ledger;
-		ledger.transactions_summary({
-			ledger_id: l.ledger_id
-		}).$promise.
-		then(function(ts) {
-			ts.forEach(function(t) {
-				t.total_value_currency = l.currencyMap(t.total_value_currency_id);
-				t.user_balance_currency = l.currencyMap(t.user_balance_currency_id);
-				t.user_credit_currency = l.currencyMap(t.user_credit_currency_id);
-			});
-			l.transactions = ts;
-			return ledger.summary({
-				ledger_id: l.ledger_id
-			}).$promise;
-		}).
-		then(function(s) {
-			s.total_value_currency = l.currencyMap(s.total_value_currency_id);
-			s.user_balance_currency = l.currencyMap(s.user_balance_currency_id);
-			s.user_credit_currency = l.currencyMap(s.user_credit_currency_id);
-			l.summary = s;
+    transaction.get($stateParams).$promise.
+    then(function(t) {
+      t.date = new Date(t.date);
+      console.log(typeof t.date);
+      t.currency = l.currencyMap(t.currency_id);
+      $scope.transaction = t;
 		});
 	}
 
 	$scope.ledger.$promise.
 	then(function() {
-		//updateView();
+		updateView();
 	});
 
   $scope.delete = function(t) {
@@ -179,5 +166,4 @@ $scope.mytime = new Date();
     }).$promise.
     then(updateView);
 	};
-  */
 }]);

@@ -4,39 +4,160 @@
       editable-text="transaction.description" onbeforesave="setDesc($data)">
       {{transaction.description}}
     </h2>
+      <h3 class="dropdown sub-header pull-right">
+        {{transaction.total_credit}}
+        <a href class="dropdown-toggle">
+          {{transaction.currency.code}}
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li ng-repeat="currency in ledger.currencies">
+            <a ng-bind="currency.code"
+              ng-click="setTotalCurrency(transaction, currency)">
+            </a>
+          </li>
+        </ul>
+      </h3>
   </div>
-  <h4>Date</h4>
-  <div class="row">
-    <div class="col-md-6">
-      <p class="input-group">
-        <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="dt" is-open="opened" min="minDate" max="'2015-06-22'" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" close-text="Close" />
-        <span class="input-group-btn">
-          <button class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
-        </span>
-      </p>
-    </div>
-  </div>
-
-  <div ng-model="mytime" ng-change="changed()" style="display:inline-block;">
-          <timepicker hour-step="hstep" minute-step="mstep" show-meridian="ismeridian"></timepicker>
-    </div>
-
 
   <form role="form">
     <div class="form-group">
-      <label for="exampleInputEmail1">Description</label>
-      <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+      <label for="date">Date</label>
+      <div class="input-group">
+        <input type="text" class="form-control" datepicker-popup="{{format}}"
+          ng-model="transaction.date" is-open="opened"
+          datepicker-options="dateOptions" date-disabled="disabled(date, mode)"
+          ng-required="true" close-text="Close" id="date">
+        <span class="input-group-btn">
+          <button class="btn btn-default" ng-click="open($event)">
+            <i class="glyphicon glyphicon-calendar"></i>
+          </button>
+        </span>
+      </div>
+    </div>
+    <!--
+    <div class="form-group">
+      <label for="time">Time</label>
+      <div class="input-group">
+        <div ng-model="mytime" ng-change="changed()"
+            style="display:inline-block;" id="time">
+          <timepicker hour-step="hstep" minute-step="mstep"
+              show-meridian="ismeridian"></timepicker>
+        </div>
+      </div>
+    </div>
+    -->
+    <!--
+    <div class="form-group">
+      <label for="location">Location</label>
+      <input type="text" class="form-control" id="location"
+          placeholder="Enter location">
     </div>
     <div class="form-group">
-      <label for="exampleInputPassword1">Location</label>
-      <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+      <label for="type">Type</label>
+      <input type="text" class="form-control" id="type"
+          placeholder="Enter transaction type">
     </div>
+    -->
     <div class="form-group">
-      <label for="exampleInputPassword1">Location</label>
-      <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+      <label for="transfer">
+        <input type="checkbox" id="transfer" ng-model="transaction.transfer">
+        Money transfer
+      </label>
     </div>
   </form>
 
-  <h2>Transaction details</h2>
-  <button class="btn btn-primary">Add new payment/debt</button>
+  <div class="divvd-header" style="margin-top:30px">
+    <h2 class="sub-header pull-left">
+			Payments/debts
+		</h2>
+    <button type="button" class="btn btn-success pull-right">
+      Add new payment/debt
+    </button>
+  </div>
+  <div class="table-responsive" style="padding-bottom:20px">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="20%">Action</th>
+          <th style="40%">Person</th>
+          <th style="40%">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="amount in transaction.amounts">
+          <td>
+            <button type="button" class="btn btn-primary btn-danger btn-xs"
+							ng-click="delete(transaction)">
+              <i class="fa fa-trash-o fa-fw"></i> Delete
+            </button>
+          </td>
+          <td>
+            {{amount.person.name}}
+          </td>
+          <td class="dropdown">
+						{{amount.amount}}
+            <a href class="dropdown-toggle">
+							{{amount.currency.code}}
+							<span class="caret"></span>
+						</a>
+            <ul class="dropdown-menu">
+              <li ng-repeat="currency in ledger.currencies">
+								<a ng-bind="currency.code"
+									ng-click="setTotalCurrency(transaction, currency)">
+								</a>
+							</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divvd-header" style="margin-top:30px">
+    <h2 class="sub-header pull-left">
+			Shared debt
+		</h2>
+    <button type="button" class="btn btn-success pull-right">
+      Add participant
+    </button>
+  </div>
+  <div class="table-responsive divvd-table">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="20%">Action</th>
+          <th style="40%">Person</th>
+          <th style="40%">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="participant in transaction.participants">
+          <td>
+            <button type="button" class="btn btn-primary btn-danger btn-xs"
+							ng-click="delete(transaction)">
+              <i class="fa fa-trash-o fa-fw"></i> Remove
+            </button>
+          </td>
+          <td>
+            {{participant.person.name}}
+          </td>
+          <td class="dropdown">
+						{{participant.shared_debt}}
+            <a href class="dropdown-toggle">
+							{{participant.currency.code}}
+							<span class="caret"></span>
+						</a>
+            <ul class="dropdown-menu">
+              <li ng-repeat="currency in ledger.currencies">
+								<a ng-bind="currency.code"
+									ng-click="setTotalCurrency(transaction, currency)">
+								</a>
+							</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
