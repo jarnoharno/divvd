@@ -210,7 +210,7 @@ dao.find_owners = function(ledger_id, db) {
 
 dao.ledgers_summary = function(user_id, db) {
   db = db || qdb;
-  return db.query('select * from ledgers_web_view where user_id = $1;',
+  return db.query('select * from ledgers_web_view where user_id = $1 order by ledger_id;',
       [user_id]).
   then(function(result) {
     return result.rows;
@@ -236,7 +236,7 @@ dao.balances = function(ledger_id, db) {
 
 dao.transactions_summary = function(ledger_id, user_id, db) {
 	db = db || qdb;
-	return db.query('select * from transactions_web_view where ledger_id = $1 and user_id = $2;',
+	return db.query('select * from transactions_web_view where ledger_id = $1 and user_id = $2 order by transaction_id;',
 			[ledger_id, user_id]).
 	then(function(result) {
 		return result.rows;

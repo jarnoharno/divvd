@@ -51,10 +51,11 @@ dao.find_with_owners = function(participant_id, db) {
     }).
     then(function(participant) {
       this.participant = participant;
-      return db.query('select user_id from owner natural join transaction where transaction_id = $1;',
+      return db.query('select user_id from owner join transaction using (ledger_id) where transaction_id = $1;',
           [participant.transaction_id]);
     }).
     then(function(result) {
+      console.log(result.rows);
       this.owners = result.rows.map(function(row) {
         return row.user_id;
       });

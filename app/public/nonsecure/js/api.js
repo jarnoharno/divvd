@@ -49,16 +49,31 @@ app.factory('ledger', ['$resource', function($resource) {
       method: 'GET',
       url: '/api/ledgers/:ledger_id/balances',
       isArray: true
+    },
+    add_transaction: {
+      method: 'POST',
+      url: '/api/ledgers/:ledger_id/transactions'
     }
   });
 }]);
 
 app.factory('transaction', ['$resource', function($resource) {
 	return $resource('/api/transactions/:transaction_id', {}, {
+    update: {
+      method: 'PUT'
+    },
 		update_summary: {
 			method: 'PUT',
 			url: '/api/transactions/:transaction_id/summary'
-		}
+		},
+    add_amount: {
+      method: 'POST',
+      url: '/api/transactions/:transaction_id/amounts'
+    },
+    add_participant: {
+      method: 'POST',
+      url: '/api/transactions/:transaction_id/participants'
+    }
 	});
 }]);
 
@@ -72,6 +87,22 @@ app.factory('currency', ['$resource', function($resource) {
 
 app.factory('person', ['$resource', function($resource) {
   return $resource('/api/persons/:person_id', {}, {
+    update: {
+      method: 'PUT'
+    }
+  });
+}]);
+
+app.factory('amount', ['$resource', function($resource) {
+  return $resource('/api/amounts/:amount_id', {}, {
+    update: {
+      method: 'PUT'
+    }
+  });
+}]);
+
+app.factory('participant', ['$resource', function($resource) {
+  return $resource('/api/participants/:participant_id', {}, {
     update: {
       method: 'PUT'
     }

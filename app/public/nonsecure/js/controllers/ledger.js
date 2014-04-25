@@ -3,7 +3,8 @@
 /* Controllers */
 
 app.controller('Ledger', ['$scope', 'ledger', '$q', 'auth', 'transaction',
-function($scope, ledger, $q, auth, transaction) {
+    '$state',
+    function($scope, ledger, $q, auth, transaction, $state) {
 
   $scope.user = auth.data.user;
 
@@ -52,6 +53,20 @@ function($scope, ledger, $q, auth, transaction) {
 		}).$promise.
 		then(updateView);
 	};
+
+  $scope.addTransaction = function() {
+    ledger.add_transaction({
+      ledger_id: $scope.ledger.ledger_id
+    }, {
+     // get default values from db 
+    }).$promise.
+    then(function(t) {
+      return $state.go('member.ledger.transaction', {
+        ledger_id: $scope.ledger.ledger_id,
+        transaction_id: t.transaction_id
+      });
+    });
+  };
 
   $scope.setBalanceCurrency = function(t, c) {
 		transaction.update_summary({

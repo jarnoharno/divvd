@@ -9,7 +9,7 @@ function Transaction(props) {
   this.currency_id = props.currency_id || null;
   this.ledger_id = props.ledger_id; // required
   this.transaction_id = props.transaction_id;
-  if (props.total_credit) {
+  if (props.total_credit !== undefined) {
     this.total_credit = props.total_credit;
   }
 }

@@ -84,6 +84,13 @@ config(['$stateProvider', '$urlRouterProvider',
               }
             }
           };
+          l.personMap = function(person_id) {
+            for (var i = 0; i < led.persons.length; ++i) {
+              if (led.persons[i].person_id == person_id) {
+                return led.persons[i];
+              }
+            }
+          };
         });
         return led;
       }

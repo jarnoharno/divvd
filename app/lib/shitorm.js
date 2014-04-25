@@ -103,7 +103,7 @@ function orm(obj) {
     db = db || qdb;
     var query =
         'select ' + obj.all_string + ' from "' + obj.table + '" where ' +
-        col + ' = $1;';
+        col + ' = $1 order by ' + obj.pk + ';';
     return db.query(query, [val]).
     then(construct_all);
   };

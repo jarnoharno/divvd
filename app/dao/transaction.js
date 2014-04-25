@@ -11,6 +11,7 @@ var util = require('./util');
 var extend = require('../lib/extend');
 var qdb = require('../lib/qdb');
 var Transaction = require('../models/transaction');
+var Participant = require('../models/participant');
 var participant = require('./participant');
 
 var dao = module.exports = {};
@@ -53,11 +54,15 @@ dao.create = function(props, db) {
       then(function() {
         return db.query(
             'insert into participant (currency_id, transaction_id, person_id) '+
-            'select $1, $2, person_id from person where ledger_id = $3;',
-            [transaction.ledger_id]);
+            'select $1, $2, person_id from person where ledger_id = $3 returning *;',
+            [transaction.currency_id,
+            transaction.transaction_id,
+            transaction.ledger_id]);
       }).
-      then(function(participants) {
-        transaction.participants = participants;
+      then(util.construct_set(Participant)).
+      then(function(p) {
+        transaction.participants = p;
+        transaction.amounts = [];
         return transaction;
       });
     });

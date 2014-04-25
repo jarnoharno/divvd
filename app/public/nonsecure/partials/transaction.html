@@ -71,24 +71,32 @@
     <h2 class="sub-header pull-left">
 			Payments/debts
 		</h2>
-    <button type="button" class="btn btn-success pull-right">
-      Add new payment/debt
-    </button>
+    <div class="dropdown pull-right">
+      <button type="button"
+        class="btn btn-success dropdown-toggle">
+        Add payment/debt
+      </button>
+      <ul class="dropdown-menu">
+        <li ng-repeat="person in ledger.persons">
+          <a ng-click="addAmount(person)">{{person.name}}</a>
+        </li>
+      </ul>
+    </div>
   </div>
   <div class="table-responsive" style="padding-bottom:20px">
     <table class="table table-striped">
       <thead>
         <tr>
-          <th style="20%">Action</th>
-          <th style="40%">Person</th>
-          <th style="40%">Amount</th>
+          <th style="width:30%">Action</th>
+          <th style="width:35%">Person</th>
+          <th style="width:35%">Amount</th>
         </tr>
       </thead>
       <tbody>
         <tr ng-repeat="amount in transaction.amounts">
           <td>
             <button type="button" class="btn btn-primary btn-danger btn-xs"
-							ng-click="delete(transaction)">
+							ng-click="deleteAmount(amount)">
               <i class="fa fa-trash-o fa-fw"></i> Delete
             </button>
           </td>
@@ -96,7 +104,8 @@
             {{amount.person.name}}
           </td>
           <td class="dropdown">
-						{{amount.amount}}
+            <span editable-text="amount.amount" ng-bind="amount.amount"
+              onbeforesave="setAmount(amount, $data)"></span>
             <a href class="dropdown-toggle">
 							{{amount.currency.code}}
 							<span class="caret"></span>
@@ -104,7 +113,7 @@
             <ul class="dropdown-menu">
               <li ng-repeat="currency in ledger.currencies">
 								<a ng-bind="currency.code"
-									ng-click="setTotalCurrency(transaction, currency)">
+									ng-click="setAmountCurrency(amount, currency)">
 								</a>
 							</li>
             </ul>
@@ -114,28 +123,36 @@
     </table>
   </div>
 
-  <div class="divvd-header" style="margin-top:30px">
+  <div class="divvd-header" style="margin-top:10px">
     <h2 class="sub-header pull-left">
 			Shared debt
 		</h2>
-    <button type="button" class="btn btn-success pull-right">
-      Add participant
-    </button>
+    <div class="dropdown pull-right">
+      <button type="button"
+        class="btn btn-success dropdown-toggle">
+        Add participant
+      </button>
+      <ul class="dropdown-menu">
+        <li ng-repeat="person in nonParticipants()">
+          <a ng-click="addParticipant(person)">{{person.name}}</a>
+        </li>
+      </ul>
+    </div>
   </div>
   <div class="table-responsive divvd-table">
     <table class="table table-striped">
       <thead>
         <tr>
-          <th style="20%">Action</th>
-          <th style="40%">Person</th>
-          <th style="40%">Amount</th>
+          <th style="width:30%">Action</th>
+          <th style="width:35%">Person</th>
+          <th style="width:35%">Amount</th>
         </tr>
       </thead>
       <tbody>
         <tr ng-repeat="participant in transaction.participants">
           <td>
             <button type="button" class="btn btn-primary btn-danger btn-xs"
-							ng-click="delete(transaction)">
+							ng-click="deleteParticipant(participant)">
               <i class="fa fa-trash-o fa-fw"></i> Remove
             </button>
           </td>
@@ -151,7 +168,7 @@
             <ul class="dropdown-menu">
               <li ng-repeat="currency in ledger.currencies">
 								<a ng-bind="currency.code"
-									ng-click="setTotalCurrency(transaction, currency)">
+									ng-click="setParticipantCurrency(participant, currency)">
 								</a>
 							</li>
             </ul>

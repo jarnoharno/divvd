@@ -7,6 +7,7 @@ var currency = require('../dao/currency');
 var amount = require('../dao/amount');
 var person = require('../dao/person');
 var transaction = require('../dao/transaction');
+var participant = require('../dao/participant');
 var jsonschema = require('jsonschema');
 var deepmerge = require('../lib/deepmerge');
 var Promise = require('bluebird');
@@ -98,6 +99,7 @@ exports.put = function(req, res) {
     });
   }).
   then(function() {
+    console.log(req.body);
     return transaction.update(req.params.transaction.transaction_id, req.body);
   }).
   then(function(transaction) {
