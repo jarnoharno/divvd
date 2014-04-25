@@ -13,6 +13,8 @@ var Amount = require('../models/amount');
 
 var dao = module.exports = {};
 
+var dada = require('../lib/dada')(module);
+
 var orm = shitorm({
   props: [
     'amount',
@@ -33,6 +35,14 @@ dao.find_by_transaction_id = function(participant_id, db) {
   db = db || qdb;
   return orm.find_by('transaction_id', participant_id, db);
 };
+
+dao.owners = dada.array(function(amount_id, db) {
+  return db.query(
+      'select user_id from amount ' +
+      'join transaction using (transaction_id)' +
+      'join owner using (ledger_id) where amount_id = $1;',
+      [amount_id]);
+});
 
 dao.find_with_owners = function(amount_id, db) {
   db = db || qdb;

@@ -32,6 +32,21 @@ session.current_user = function(req) {
   }
 };
 
+session.auth = function(req, pattern) {
+  return function() {
+    return session.current_user(req).
+    then(function(usr) {
+      if (usr.role.match(pattern) ||
+          req.params.owners.reduce(function(prev, owner) {
+            return prev || owner.user_id === usr.user_id;
+          }, false)) {
+        return usr;
+      }
+      throw new Hox(404, 'not found');
+    });
+  };
+};
+
 session.authorize = function(req, authf, spoof) {
   return session.current_user(req).
   then(function(usr) {

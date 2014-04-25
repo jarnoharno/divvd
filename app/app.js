@@ -12,12 +12,12 @@ var participant = require('./controllers/participant');
 var amount      = require('./controllers/amount');
 var common      = require('./controllers/common');
 var db          = require('./lib/qdb');
-
-console.log('STARTING');
+var controllers = require('./controllers');
 
 var app = express();
 
 db.init(process.env.DATABASE_URL);
+
 app.set('port', process.env.PORT || 80);
 app.enable('trust proxy');
 app.disable('x-powered-by');
@@ -120,9 +120,11 @@ app.delete  ('/api/participants/:p',              participant.delete);
 app.put     ('/api/participants/:p',              participant.put);
 
 app.param   ('amount',                            amount.param);
-app.get     ('/api/amounts/:amount',              amount.get);
-app.delete  ('/api/amounts/:amount',              amount.delete);
-app.put     ('/api/amounts/:amount',              amount.put);
+//app.get     ('/api/amounts/:amount',              amount.get);
+//app.delete  ('/api/amounts/:amount',              amount.delete);
+//app.put     ('/api/amounts/:amount',              amount.put);
+
+controllers.init(app);
 
 // static secure content
 

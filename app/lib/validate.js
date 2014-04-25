@@ -1,4 +1,6 @@
 var jsonschema = require('jsonschema');
+var Promise = require('bluebird');
+var Hox = require('./hox');
 
 module.exports = validate;
 
@@ -24,3 +26,12 @@ function validate(json, schema) {
   var v = validator.validate(json, schema);
   return v.errors.length == 0;
 }
+
+validate.check = function(json, schema) {
+  return Promise.try(function() {
+    if (validate(json, schema)) {
+      return json;
+    }
+    throw new Hox(400, "unexpected parameters");
+  });
+};
