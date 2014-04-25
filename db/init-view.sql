@@ -340,7 +340,7 @@ join currency                     as c using (currency_id)
 
 create view transaction_view as
 select a.*
-     , cast(gen_total_credit / c.rate as numeric(16,2)) total_credit
+     , cast(coalesce(gen_total_credit,0) / c.rate as numeric(16,2)) total_credit
 from transaction                        as a
 left join gen_total_credit_transaction  as b using (transaction_id)
 join currency                           as c using (currency_id)

@@ -1,0 +1,38 @@
+<div class="container" ng-controller="Persons">
+  <div class="divvd-header">
+    <h2 class="sub-header pull-left">{{ledger.title}} persons</h2>
+    <button type="button" class="btn btn-success pull-right"
+      ng-click="add()">
+      Add person
+    </button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="width:20%">Action</th>
+          <th style="width:80%">Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="person in ledger.persons">
+          <td>
+            <button ng-disabled="person.user_id"
+              type="button" ng-click="delete(person)"
+              class="btn btn-primary btn-danger btn-xs">
+              <i class="fa fa-trash-o fa-fw"></i> Delete
+            </button>
+          </td>
+          <td>
+            <span class="sub-header pull-left"
+              editable-text="person.name"
+              onbeforesave="setName(person, $data)"
+              e-class="input-sm table-input" buttons="no">
+              {{person.name}}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

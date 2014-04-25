@@ -110,6 +110,17 @@ config(['$stateProvider', '$urlRouterProvider',
       }
     }
   }).
+  state('member.ledger.persons', {
+    url: '/persons',
+    views: {
+      'body@': {
+        templateUrl: '/partials/persons.html',
+        controller: function($scope, currentLedger) {
+          $scope.ledger = currentLedger;
+        }
+      }
+    }
+  }).
   state('member.ledger.currencies', {
     url: '/currencies',
     views: {

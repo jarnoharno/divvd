@@ -53,6 +53,15 @@ app.factory('ledger', ['$resource', function($resource) {
     add_transaction: {
       method: 'POST',
       url: '/api/ledgers/:ledger_id/transactions'
+    },
+    add_person: {
+      method: 'POST',
+      url: '/api/ledgers/:ledger_id/persons'
+    },
+    persons: {
+      method: 'GET',
+      url: '/api/ledgers/:ledger_id/persons',
+      isArray: true
     }
   });
 }]);
@@ -95,6 +104,14 @@ app.factory('person', ['$resource', function($resource) {
 
 app.factory('amount', ['$resource', function($resource) {
   return $resource('/api/amounts/:amount_id', {}, {
+    update: {
+      method: 'PUT'
+    }
+  });
+}]);
+
+app.factory('participant', ['$resource', function($resource) {
+  return $resource('/api/participants/:participant_id', {}, {
     update: {
       method: 'PUT'
     }

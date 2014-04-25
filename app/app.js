@@ -13,6 +13,8 @@ var amount      = require('./controllers/amount');
 var common      = require('./controllers/common');
 var db          = require('./lib/qdb');
 
+console.log('STARTING');
+
 var app = express();
 
 db.init(process.env.DATABASE_URL);

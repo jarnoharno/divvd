@@ -63,11 +63,11 @@ exports.delete = function(req, res) {
 
 // PUT /api/persons/:person
 //
-// Update ledger
+// Update person
 //
 // \post_param {
 //  currency_id:integer
-//  user_id:integer
+//  name:string
 // }
 // \return {
 // }
@@ -80,8 +80,8 @@ var update_arg_schema = {
     "currency_id": {
       "$ref": "/positive_integer"
     },
-    "user_id": {
-      "$ref": "/positive_integer"
+    "name": {
+      "type": "string"
     }
   }
 };
