@@ -33,11 +33,12 @@ session.current_user = function(req) {
 };
 
 session.auth = function(req, pattern) {
-  return function() {
+  return function(owners) {
     return session.current_user(req).
+    bind(owners).
     then(function(usr) {
       if (usr.role.match(pattern) ||
-          req.params.owners.reduce(function(prev, owner) {
+          this.reduce(function(prev, owner) {
             return prev || owner.user_id === usr.user_id;
           }, false)) {
         return usr;

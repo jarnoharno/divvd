@@ -119,7 +119,7 @@ app.get     ('/api/participants/:p',              participant.get);
 app.delete  ('/api/participants/:p',              participant.delete);
 app.put     ('/api/participants/:p',              participant.put);
 
-app.param   ('amount',                            amount.param);
+//app.param   ('amount',                            /^\d+$/);
 //app.get     ('/api/amounts/:amount',              amount.get);
 //app.delete  ('/api/amounts/:amount',              amount.delete);
 //app.put     ('/api/amounts/:amount',              amount.put);
