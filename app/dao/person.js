@@ -1,96 +1,8 @@
-var Person = require('../models/person');
-var Hox = require('../lib/hox');
-var util = require('./util');
-var merge = require('../lib/merge');
-var Promise = require('bluebird');
 var shitorm = require('../lib/shitorm');
-var qdb = require('../lib/qdb');
+var Person = require('../models/person');
+var dada = require('../lib/dada');
 
 var dao = module.exports = {};
-
-// if currency_id is not supplied, total_currency_id from ledger is used
-// if user_id is deduced from name if not given explicitly
-
-// this could probably be nicer...
-
-function insert_person(props, db) {
-  if (props.user_id) {
-    if (props.name) {
-      if (props.currency_id) {
-        return db.query('insert into person (name, user_id, currency_id, ledger_id) values ($1, $2, $3, $4) returning name, user_id, currency_id, ledger_id, person_id;',
-            [props.name, props.user_id, props.currency_id, props.ledger_id]);
-      } else {
-        return db.query('insert into person (name, user_id, currency_id, ledger_id) select $1, $2, total_currency_id currency_id, $3 from ledger_settings where ledger_id = $3 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
-            [props.name, props.user_id, props.ledger_id]);
-      }
-    } else {
-      if (props.currency_id) {
-        return db.query('insert into person (name, user_id, currency_id, ledger_id) select username, $1, $2, $3 from "user" where user_id = $1 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
-            [props.user_id, props.currency_id, props.ledger_id]);
-      } else {
-        return db.query('insert into person (name, user_id, currency_id, ledger_id) select username, $1, total_currency_id currency_id, $2 from "user" join ledger_settings on user_id = $1 and ledger_id = $2 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
-            [props.user_id, props.ledger_id]);
-      }
-    }
-  } else if (props.name) {
-    if (props.currency_id) {
-      return db.query('insert into person (name, currency_id, ledger_id) values ($1, $2, $3) returning name, user_id, currency_id, ledger_id, person_id;',
-          [props.name, props.currency_id, props.ledger_id]);
-    } else {
-      return db.query('insert into person (name, currency_id, ledger_id) select $1, total_currency_id currency_id, $2 from ledger_settings where ledger_id = $2 limit 1 returning name, user_id, currency_id, ledger_id, person_id;',
-          [props.name, props.ledger_id]);
-    }
-  } else {
-    return Promise.reject(new Hox(400, 'no name or user_id given'));
-  }
-}
-
-dao.create = function(props, db) {
-  db = db || qdb;
-  return insert_person(props, db).
-  catch(util.pg_error).
-  then(util.first_row).
-  then(function(row) {
-    return new Person(merge(props, row));
-  });
-};
-
-dao.find_by_ledger_id = function(ledger_id, db) {
-  db = db || qdb;
-  return db.query('select name, currency_id, user_id, ledger_id, person_id from person where ledger_id = $1;',
-      [ledger_id]).
-  then(util.construct_set(Person));
-};
-
-// return {
-//  person:Person
-//  owners:[user_id]
-// }
-
-dao.find_with_owners = function(person_id, db) {
-  db = db || qdb;
-  return db.transaction(function(db) {
-    return Promise.bind({}).
-    then(function() {
-      return dao.find(person_id, db);
-    }).
-    then(function(person) {
-      this.person = person;
-    }).
-    then(function() {
-      return db.query('select user_id from owner where ledger_id = $1;',
-          [this.person.ledger_id]);
-    }).
-    then(function(result) {
-      this.owners = result.rows.map(function(row) {
-        return row.user_id;
-      });
-      return this;
-    });
-  });
-};
-
-// automatically generated stuff
 
 var orm = shitorm({
   props: [
@@ -104,6 +16,32 @@ var orm = shitorm({
   constructor: Person
 });
 
-dao.delete = orm.delete;
 dao.update = orm.update;
+dao.delete = orm.delete;
 dao.find = orm.find;
+
+dao.find_by_ledger_id = orm.find_by.bind(undefined, 'ledger_id');
+
+dao.owners = dada.array(function(person_id, db) {
+  return db.query(
+      'select owner.user_id from person ' +
+      'join owner using (ledger_id) where person_id = $1;',
+      [person_id]);
+});
+
+dao.create = orm.create_with_defaults({
+  currency_id: {
+    table: {
+      name: 'ledger_settings',
+      where: 'ledger_id',
+      col: 'total_currency_id'
+    }
+  },
+  name: {
+    table: {
+      name: 'user',
+      where: 'user_id',
+      col: 'username'
+    }
+  },
+});

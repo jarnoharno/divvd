@@ -84,10 +84,10 @@ app.delete  ('/api/ledgers/:ledger',              ledger.delete);
 app.put     ('/api/ledgers/:ledger',              ledger.update);
 app.get     ('/api/ledgers/:ledger/summary',      ledger.summary);
 app.get     ('/api/ledgers/:ledger/balances',     ledger.balances);
-app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
+//app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
 app.post    ('/api/ledgers/:ledger/currencies',   ledger.add_currency);
-app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
-app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
+//app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
+//app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
 app.get     ('/api/ledgers/:ledger/transactions', ledger.transactions);
 app.post    ('/api/ledgers/:ledger/transactions', ledger.add_transaction);
 app.get			('/api/ledgers/:ledger/transactions/summary',
@@ -95,19 +95,14 @@ app.get			('/api/ledgers/:ledger/transactions/summary',
 app.param   ('o',                                 ledger.param.owner);
 app.put     ('/api/ledgers/:ledger/owners/:o',    ledger.update_owner);
 
-app.param   ('person',                            person.param);
-app.get     ('/api/persons/:person',              person.get);
-app.delete  ('/api/persons/:person',              person.delete);
-app.put     ('/api/persons/:person',              person.put);
-
 app.param   ('t',                                 transaction.param);
 app.get     ('/api/transactions/:t',              transaction.get);
 app.delete  ('/api/transactions/:t',              transaction.delete);
 app.put     ('/api/transactions/:t',              transaction.put);
-app.post    ('/api/transactions/:t/amounts',      transaction.add_amount);
+//app.post    ('/api/transactions/:t/amounts',      transaction.add_amount);
 app.put			('/api/transactions/:t/summary',			transaction.update_summary);
 app.get     ('/api/transactions/:t/participants', transaction.participants);
-app.post    ('/api/transactions/:t/participants', transaction.add_participant);
+//app.post    ('/api/transactions/:t/participants', transaction.add_participant);
 
 controllers.init(app);
 

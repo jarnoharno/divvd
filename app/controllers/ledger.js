@@ -11,6 +11,8 @@ var deepmerge = require('../lib/deepmerge');
 var Promise = require('bluebird');
 var Hox = require('../lib/hox');
 var validate = require('../lib/validate');
+var close = require('../lib/close');
+var schemas = require('./schemas');
 
 // GET /api/ledgers
 //
@@ -338,24 +340,22 @@ exports.update_owner = function(req, res) {
   catch(common.handle(res));
 }
 
-// TODO credentials check
-// this could be taken from req.param.ledger!
-
-exports.currencies = function(req, res) {
-  return currency.find_by_ledger_id(req.params.ledger.ledger_id).
-  then(function(currencies) {
-    res.json(currencies);
-  }).
-  catch(common.handle(res));
+exports.currencies = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
+  then(close(currency.find_by_ledger_id)(req.params.id, db));
 };
 
-// TODO credentials check
-// this could be taken from req.param.ledger!
-
 exports.persons = function(req, res) {
-  return person.find_by_ledger_id(req.params.ledger.ledger_id).
-  then(function(persons) {
-    res.json(persons);
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
+  then(close(person.find_by_ledger_id)(req.params.id, db));
+};
+
+exports.transactions = function(req, res) {
+  return transaction.find_by_ledger_id(req.params.ledger.ledger_id).
+  then(function(transactions) {
+    res.json(transactions);
   }).
   catch(common.handle(res));
 };
@@ -419,37 +419,13 @@ var person_arg_schema = {
   }
 };
 
-exports.add_person = function(req, res) {
-  Promise.try(function() {
-    var arg = req.body;
-    if (!validate(arg, person_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-
-    arg.ledger_id = req.params.ledger.ledger_id;
-
-    return session.authorize(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.ledger.owners.reduce(function(prev, owner) {
-                return prev || owner.user_id === me.user_id;
-              }, false);
-    }).
-    then(function() {
-      return person.create(arg);
-    });
-  }).
-  then(function(person) {
-    res.json(person);
-  }).
-  catch(common.handle(res));
-}
-
-exports.transactions = function(req, res) {
-  return transaction.find_by_ledger_id(req.params.ledger.ledger_id).
-  then(function(transactions) {
-    res.json(transactions);
-  }).
-  catch(common.handle(res));
+exports.add_person = function(req, db) {
+  req.body.ledger_id = req.params.id;
+  console.log(req.body);
+  return validate.check(req.body, schemas.person).
+  then(close(ledger.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(person.create)(req.body, db));
 };
 
 var transaction_arg_schema = {

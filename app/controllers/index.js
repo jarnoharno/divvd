@@ -1,8 +1,11 @@
-var participant =   require('./participant');
-var currency =      require('./currency');
-var amount =        require('./amount');
-var common =        require('./common');
-var qdb =           require('../lib/qdb');
+var ledger        = require('./ledger');
+var transaction   = require('./transaction');
+var person        = require('./participant');
+var participant   = require('./participant');
+var currency      = require('./currency');
+var amount        = require('./amount');
+var common        = require('./common');
+var qdb           = require('../lib/qdb');
 
 function ctrl_wrap(ctrl) {
   return function(req, res) {
@@ -23,7 +26,12 @@ app.param(function(name, fn) {
     return function(req, res, next, val){
       var captures;
       if (captures = fn.exec(String(val))) {
-        req.params[name] = captures[0];
+        var val = captures[0];
+        var n;
+        if (val !== '' && !isNaN(n = Number(val))) {
+          val = n;
+        }
+        req.params[name] = val;
         next();
       } else {
         next('route');
@@ -44,25 +52,40 @@ function put(path, ctrl) {
   app.put(path, ctrl_wrap(ctrl));
 }
 
+function pos(path, ctrl) {
+  app.post(path, ctrl_wrap(ctrl));
+}
+
 function par(path, f) {
   app.param(path, f);
 }
 
 // routes
 
-par     ('participant_id', /^\d+$/);
-get     ('/api/currencies/:participant_id', participant.get);
-del     ('/api/currencies/:participant_id', participant.del);
-put     ('/api/currencies/:participant_id', participant.put);
+par     ('id', /^\d+$/);
 
-par     ('currency_id', /^\d+$/);
-get     ('/api/currencies/:currency_id', currency.get);
-del     ('/api/currencies/:currency_id', currency.del);
-put     ('/api/currencies/:currency_id', currency.put);
+pos     ('/api/ledgers/:id/persons', ledger.add_person);
 
-par     ('amount_id', /^\d+$/);
-get     ('/api/amounts/:amount_id', amount.get);
-del     ('/api/amounts/:amount_id', amount.del);
-put     ('/api/amounts/:amount_id', amount.put);
+get     ('/api/ledgers/:id/currencies', ledger.currencies);
+get     ('/api/ledgers/:id/persons', ledger.persons);
+
+pos     ('/api/transactions/:id/amounts', transaction.add_amount);
+pos     ('/api/transactions/:id/participants', transaction.add_participant);
+
+get     ('/api/persons/:id', person.get);
+del     ('/api/persons/:id', person.del);
+put     ('/api/persons/:id', person.put);
+
+get     ('/api/participants/:id', participant.get);
+del     ('/api/participants/:id', participant.del);
+put     ('/api/participants/:id', participant.put);
+
+get     ('/api/currencies/:id', currency.get);
+del     ('/api/currencies/:id', currency.del);
+put     ('/api/currencies/:id', currency.put);
+
+get     ('/api/amounts/:id', amount.get);
+del     ('/api/amounts/:id', amount.del);
+put     ('/api/amounts/:id', amount.put);
 
 };

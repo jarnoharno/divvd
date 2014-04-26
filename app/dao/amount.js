@@ -1,17 +1,6 @@
-var Ledger = require('../models/ledger');
-var currency = require('./currency');
-var user = require('./user');
-var person = require('./person');
-var Hox = require('../lib/hox');
-var Promise = require('bluebird');
-var merge = require('../lib/merge');
-var shitorm = require('../lib/shitorm');
-var util = require('./util');
-var extend = require('../lib/extend');
-var qdb = require('../lib/qdb');
-var Amount = require('../models/amount');
-var close = require('../lib/close');
-var dada = require('../lib/dada');
+var shitorm   = require('../lib/shitorm');
+var Amount    = require('../models/amount');
+var dada      = require('../lib/dada');
 
 var dao = module.exports = {};
 
@@ -27,19 +16,35 @@ var orm = shitorm({
   constructor: Amount
 });
 
-dao.create = orm.create;
 dao.update = orm.update;
 dao.delete = orm.delete;
 dao.find = orm.find;
 
-dao.find_by_transaction_id = function(participant_id, db) {
-  return orm.find_by('transaction_id', participant_id, db);
-};
+// transaction_id is a required parameter because where refers to it
+dao.create = orm.create_with_defaults({
+  currency_id: {
+    table: {
+      name: 'transaction',
+      where: 'transaction_id'
+    }
+  },
+  person_id: {
+    table: {
+      name: 'person',
+      depends: {
+        name: 'transaction',
+        key: 'ledger_id'
+      }
+    }
+  }
+});
+
+dao.find_by_transaction_id = orm.find_by.bind(undefined, 'transaction_id');
 
 dao.owners = dada.array(function(amount_id, db) {
   return db.query(
       'select user_id from amount ' +
-      'join transaction using (transaction_id)' +
+      'join transaction using (transaction_id) ' +
       'join owner using (ledger_id) where amount_id = $1;',
       [amount_id]);
 });

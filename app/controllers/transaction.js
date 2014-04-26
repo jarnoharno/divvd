@@ -14,6 +14,8 @@ var Promise = require('bluebird');
 var Hox = require('../lib/hox');
 var validate = require('../lib/validate');
 var extend = require('../lib/extend');
+var schemas = require('./schemas');
+var close = require('../lib/close');
 
 // GET /api/transaction/:t
 //
@@ -162,89 +164,20 @@ exports.participants = function(req, res) {
   res.json(req.params.transaction.participants);
 };
 
-var participant_arg_schema = {
-  "id": "/participant_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "person_id": {
-      "$ref": "/positive_integer"
-    }
-  }
-};
-
-exports.add_participant = function(req, res) {
-  Promise.try(function() {
-    var arg = req.body;
-    if (!validate(arg, participant_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    arg.transaction_id = req.params.transaction.transaction_id;
-    return session.authorize(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.owners.reduce(function(prev, user_id) {
-                return prev || user_id === me.user_id;
-              }, false);
-    }).
-    then(function() {
-      return participant.create(arg);
-    });
-  }).
-  then(function(participant) {
-    res.json(participant);
-  }).
-  catch(common.handle(res));
+exports.add_participant = function(req, db) {
+  req.body.transaction_id = req.params.id;
+  return validate.check(req.body, schemas.participant).
+  then(close(transaction.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(participant.create)(req.body, db));
 }
 
-// TODO credentials check
-
-exports.amounts = function(req, res) {
-  res.json(req.params.participant.amounts);
-};
-
-var amount_arg_schema = {
-  "id": "/amount_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "amount": {
-      "type": "number"
-    },
-    "currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "person_id": {
-      "$ref": "/positive_integer"
-    }
-  }
-};
-
-exports.add_amount = function(req, res) {
-  Promise.try(function() {
-    var arg = req.body;
-    if (!validate(arg, amount_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    arg.currency_id = arg.currency_id ||
-        req.params.transaction.currency_id;
-    arg.transaction_id = req.params.transaction.transaction_id;
-    return session.authorize(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.owners.reduce(function(prev, user_id) {
-                return prev || user_id === me.user_id;
-              }, false);
-    }).
-    then(function() {
-      return amount.create(arg);
-    });
-  }).
-  then(function(amount) {
-    res.json(amount);
-  }).
-  catch(common.handle(res));
+exports.add_amount = function(req, db) {
+  req.body.transaction_id = req.params.id;
+  return validate.check(req.body, schemas.amount).
+  then(close(transaction.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(amount.create)(req.body, db));
 }
 
 // Parses :transaction GET parameter

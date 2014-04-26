@@ -1,56 +1,36 @@
-var common = require('./common');
-var session = require('../lib/session');
-var currency = require('../dao/currency');
-var validate = require('../lib/validate');
-var close = require('../lib/close');
+var session       = require('../lib/session');
+var currency      = require('../dao/currency');
+var validate      = require('../lib/validate');
+var close         = require('../lib/close');
+var schemas       = require('./schemas');
 
-// GET /api/currency/:currency_id
+// GET /api/currencies/:id
 //
 // Get requested currency
 
 exports.get = function(req, db) {
-  var currency_id = req.params.currency_id;
-  return currency.owners(currency_id, db).
+  return currency.owners(req.params.id, db).
   then(session.auth(req, /debug|admin/)).
-  then(close(currency.find)(currency_id, db));
+  then(close(currency.find)(req.params.id, db));
 };
 
-// DELETE /api/currency/:currency
+// DELETE /api/currencies/:id
 //
 // Delete the requested currency
 
 exports.del = function(req, db) {
-  var currency_id = req.params.currency_id;
-  return currency.owners(currency_id, db).
+  return currency.owners(req.params.id, db).
   then(session.auth(req, /admin/)).
-  then(close(currency.del)(currency_id, db));
+  then(close(currency.delete)(req.params.id, db));
 }
 
-// PUT /api/currencies/:t
+// PUT /api/currencies/:id
 //
 // Update currency
 
-var currency_arg_schema = {
-  "id": "/currency_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-  "code": {
-      "type": "string"
-    },
-    "rate": {
-      "$ref": "/positive_number"
-    },
-    "ledger_id": {
-      "$ref": "/positive_integer"
-    }
-  }
-};
-
 exports.put = function(req, db) {
-  var currency_id = req.params.currency_id;
-  return validate.check(req.body, currency_arg_schema).
-  then(close(currency.owners)(currency_id, db)).
+  return validate.check(req.body, schemas.currency).
+  then(close(currency.owners)(req.params.id, db)).
   then(session.auth(req, /admin/)).
-  then(close(currency.update)(req.params.currency_id, req.body, db));
+  then(close(currency.update)(req.params.id, req.body, db));
 };

@@ -1,58 +1,36 @@
-var session = require('../lib/session');
-var amount = require('../dao/amount');
-var validate = require('../lib/validate');
-var close = require('../lib/close');
+var session       = require('../lib/session');
+var amount        = require('../dao/amount');
+var validate      = require('../lib/validate');
+var close         = require('../lib/close');
+var schemas       = require('./schemas')
 
-// GET /api/amount/:amount_id
+// GET /api/amount/:id
 //
 // Get requested amount
 
 exports.get = function(req, db) {
-  var amount_id = req.params.amount_id;
-  return amount.owners(amount_id, db).
+  return amount.owners(req.params.id, db).
   then(session.auth(req, /debug|admin/)).
-  then(close(amount.find)(amount_id, db));
+  then(close(amount.find)(req.params.id, db));
 };
 
-// DELETE /api/amount/:amount
+// DELETE /api/amount/:id
 //
 // Delete the requested amount
 
 exports.del = function(req, db) {
-  var amount_id = req.params.amount_id;
-  return amount.owners(amount_id, db).
+  return amount.owners(req.params.id, db).
   then(session.auth(req, /admin/)).
-  then(close(amount.del)(amount_id, db));
+  then(close(amount.delete)(req.params.id, db));
 }
 
-// PUT /api/amounts/:t
+// PUT /api/amounts/:id
 //
 // Update amount
 
-var amount_arg_schema = {
-  "id": "/amount_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "amount": {
-      "type": "number"
-    },
-    "currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "transaction_id": {
-      "$ref": "/positive_integer"
-    },
-    "person_id": {
-      "$ref": "/positive_integer"
-    }
-  }
-};
-
 exports.put = function(req, db) {
-  var amount_id = req.params.amount_id;
-  return validate.check(req.body, amount_arg_schema).
-  then(close(amount.owners)(amount_id, db)).
+  return validate.check(req.body, schemas.amount).
+  then(close(amount.owners)(req.params.id, db)).
   then(session.auth(req, /admin/)).
-  then(close(amount.update)(req.params.amount_id, req.body, db));
+  then(close(amount.update)(req.params.id, req.body, db));
 };

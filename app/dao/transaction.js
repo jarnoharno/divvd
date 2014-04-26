@@ -13,6 +13,7 @@ var qdb = require('../lib/qdb');
 var Transaction = require('../models/transaction');
 var Participant = require('../models/participant');
 var participant = require('./participant');
+var dada = require('../lib/dada');
 
 var dao = module.exports = {};
 
@@ -29,6 +30,12 @@ var orm = shitorm({
   pk: 'transaction_id',
   table: 'transaction',
   constructor: Transaction
+});
+
+dao.currency = dada.single(function(pk, db) {
+  return db.query(
+      'select currency_id from transaction where transaction_id = $1;',
+      [pk]);
 });
 
 dao.create = function(props, db) {
@@ -136,3 +143,10 @@ dao.find_with_owners = function(transaction_id, db) {
     });
   });
 };
+
+dao.owners = dada.array(function(pk, db) {
+  return db.query(
+      'select user_id from transaction ' +
+      'join owner using (ledger_id) where transaction_id = $1;',
+      [pk]);
+});

@@ -1,119 +1,36 @@
-var common = require('./common');
-var colors = require('colors');
-var array = require('../lib/array');
-var session = require('../lib/session');
-var ledger = require('../dao/ledger');
-var person = require('../dao/person');
-var person = require('../dao/person');
-var jsonschema = require('jsonschema');
-var deepmerge = require('../lib/deepmerge');
-var Promise = require('bluebird');
-var Hox = require('../lib/hox');
-var extend = require('../lib/extend');
-var validate = require('../lib/validate');
+var session     = require('../lib/session');
+var person      = require('../dao/person');
+var validate    = require('../lib/validate');
+var close       = require('../lib/close');
+var schemas     = require('./schemas');
 
-// GET /api/persons/:person
+// GET /api/persons/:id
 //
-// Returns the requested person
-//
-// \return {
-//  code:string
-//  rate:number
-//  person_id:integer
-// }
+// Get requested person
 
-exports.get = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/debug|admin/) ||
-            req.params.owners.reduce(function(prev, user_id) {
-              return prev || user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    res.json(req.params.person);
-  }).
-  catch(common.handle(res));
+exports.get = function(req, db) {
+  return person.owners(req.params.id, db).
+  then(session.auth(req, /debug|admin/)).
+  then(close(person.find)(req.params.id, db));
 };
 
-// DELETE /api/persons/:person
+// DELETE /api/persons/:id
 //
-// Deletes the requested person
-//
-// \return {
-//  code:string
-//  rate:number
-//  person_id:integer
-// }
+// Delete the requested person
 
-exports.delete = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/admin/) ||
-            req.params.owners.reduce(function(prev, user_id) {
-              return prev || user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    return person.delete(req.params.person.person_id);
-  }).
-  then(function(person) {
-    res.json(person);
-  }).
-  catch(common.handle(res));
-};
+exports.del = function(req, db) {
+  return person.owners(req.params.id, db).
+  then(session.auth(req, /admin/)).
+  then(close(person.delete)(req.params.id, db));
+}
 
-// PUT /api/persons/:person
+// PUT /api/persons/:id
 //
 // Update person
-//
-// \post_param {
-//  currency_id:integer
-//  name:string
-// }
-// \return {
-// }
 
-var update_arg_schema = {
-  "id": "/update_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "currency_id": {
-      "$ref": "/positive_integer"
-    },
-    "name": {
-      "type": "string"
-    }
-  }
-};
-
-exports.put = function(req, res) {
-  Promise.try(function() {
-    if (!validate(req.body, update_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    return session.authorize_spoof(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.owners.reduce(function(prev, user_id) {
-                return prev || user_id === me.user_id;
-              }, false);
-    });
-  }).
-  then(function() {
-    return person.update(req.params.person.person_id, req.body);
-  }).
-  then(function(person) {
-    res.json(person);
-  }).
-  catch(common.handle(res));
-};
-
-// Parses :person GET parameter
-
-exports.param = function(req, res, next, id) {
-  person.find_with_owners(id).
-  then(function(person_with_owners) {
-    extend(req.params, person_with_owners);
-    next();
-  }).
-  catch(common.handle(res));
+exports.put = function(req, db) {
+  return validate.check(req.body, schemas.person).
+  then(close(person.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(person.update)(req.params.id, req.body, db));
 };

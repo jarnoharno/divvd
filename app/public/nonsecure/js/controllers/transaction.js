@@ -246,7 +246,6 @@ app.controller('Transaction',
   };
 
   $scope.addParticipant = function(p) {
-    console.log(p);
     transaction.add_participant({
       transaction_id: $scope.transaction.transaction_id
     }, {

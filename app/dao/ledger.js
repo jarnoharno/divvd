@@ -10,6 +10,7 @@ var shitorm = require('../lib/shitorm');
 var util = require('./util');
 var extend = require('../lib/extend');
 var qdb = require('../lib/qdb');
+var dada = require('../lib/dada');
 
 var dao = module.exports = {};
 
@@ -287,3 +288,9 @@ function select_ledger(ledger_id, db) {
     return new Ledger(row);
   });
 }
+
+dao.owners = dada.array(function(ledger_id, db) {
+  return db.query(
+      'select user_id from owner where ledger_id = $1;',
+      [ledger_id]);
+});
