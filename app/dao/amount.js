@@ -11,7 +11,7 @@ var extend = require('../lib/extend');
 var qdb = require('../lib/qdb');
 var Amount = require('../models/amount');
 var close = require('../lib/close');
-var dada = require('../lib/dada')(module);
+var dada = require('../lib/dada');
 
 var dao = module.exports = {};
 
@@ -28,18 +28,18 @@ var orm = shitorm({
 });
 
 dao.create = orm.create;
-dao.update = close(orm.update);
-dao.delete = close(orm.delete);
-dao.find = close(orm.find);
+dao.update = orm.update;
+dao.delete = orm.delete;
+dao.find = orm.find;
 
 dao.find_by_transaction_id = function(participant_id, db) {
   return orm.find_by('transaction_id', participant_id, db);
 };
 
-dao.owners = close(dada.array(function(amount_id, db) {
+dao.owners = dada.array(function(amount_id, db) {
   return db.query(
       'select user_id from amount ' +
       'join transaction using (transaction_id)' +
       'join owner using (ledger_id) where amount_id = $1;',
       [amount_id]);
-}));
+});

@@ -1,48 +1,19 @@
-var Currency = require('../models/currency');
-var qdb = require('../lib/qdb');
+var Ledger = require('../models/ledger');
+var currency = require('./currency');
+var user = require('./user');
+var person = require('./person');
 var Hox = require('../lib/hox');
-var util = require('./util');
-var shitorm = require('../lib/shitorm');
 var Promise = require('bluebird');
+var merge = require('../lib/merge');
+var shitorm = require('../lib/shitorm');
+var util = require('./util');
+var extend = require('../lib/extend');
+var qdb = require('../lib/qdb');
+var Currency = require('../models/currency');
+var close = require('../lib/close');
+var dada = require('../lib/dada');
 
 var dao = module.exports = {};
-
-dao.find_by_ledger_id = function(ledger_id, db) {
-  db = db || qdb;
-  return db.query('select * from currency_active where ledger_id = $1 order by currency_id;',
-      [ledger_id]).
-  then(util.construct_set(Currency));
-};
-
-// return {
-//  currency:Currency
-//  owners:[user_id]
-// }
-
-dao.find_with_owners = function(currency_id, db) {
-  db = db || qdb;
-  return db.transaction(function(db) {
-    return Promise.bind({}).
-    then(function() {
-      return dao.find(currency_id, db);
-    }).
-    then(function(currency) {
-      this.currency = currency;
-    }).
-    then(function() {
-      return db.query('select user_id from owner where ledger_id = $1;',
-          [this.currency.ledger_id]);
-    }).
-    then(function(result) {
-      this.owners = result.rows.map(function(row) {
-        return row.user_id;
-      });
-      return this;
-    });
-  });
-};
-
-// automatically generated stuff
 
 var orm = shitorm({
   props: [
@@ -56,6 +27,17 @@ var orm = shitorm({
 });
 
 dao.create = orm.create;
-dao.delete = orm.delete;
 dao.update = orm.update;
+dao.delete = orm.delete;
 dao.find = orm.find;
+
+dao.find_by_ledger_id = function(ledger_id, db) {
+  return orm.find_by('ledger_id', ledger_id, db);
+};
+
+dao.owners = dada.array(function(currency_id, db) {
+  return db.query(
+      'select user_id from currency ' +
+      'join owner using (ledger_id) where currency_id = $1;',
+      [currency_id]);
+});

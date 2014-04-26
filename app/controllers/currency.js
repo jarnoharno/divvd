@@ -1,120 +1,56 @@
 var common = require('./common');
-var colors = require('colors');
-var array = require('../lib/array');
 var session = require('../lib/session');
-var ledger = require('../dao/ledger');
 var currency = require('../dao/currency');
-var person = require('../dao/person');
-var jsonschema = require('jsonschema');
-var deepmerge = require('../lib/deepmerge');
-var Promise = require('bluebird');
-var Hox = require('../lib/hox');
-var extend = require('../lib/extend');
 var validate = require('../lib/validate');
+var close = require('../lib/close');
 
-// GET /api/currencies/:currency
+// GET /api/currency/:currency_id
 //
-// Returns the requested currency
-//
-// \return {
-//  code:string
-//  rate:number
-//  currency_id:integer
-// }
+// Get requested currency
 
-exports.get = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/debug|admin/) ||
-            req.params.owners.reduce(function(prev, user_id) {
-              return prev || user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    res.json(req.params.currency);
-  }).
-  catch(common.handle(res));
+exports.get = function(req, db) {
+  var currency_id = req.params.currency_id;
+  return currency.owners(currency_id, db).
+  then(session.auth(req, /debug|admin/)).
+  then(close(currency.find)(currency_id, db));
 };
 
-// DELETE /api/currencies/:currency
+// DELETE /api/currency/:currency
 //
-// Deletes the requested currency
-//
-// \return {
-//  code:string
-//  rate:number
-//  currency_id:integer
-// }
+// Delete the requested currency
 
-exports.delete = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/admin/) ||
-            req.params.owners.reduce(function(prev, user_id) {
-              return prev || user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    return currency.delete(req.params.currency.currency_id);
-  }).
-  then(function(currency) {
-    res.json(currency);
-  }).
-  catch(common.handle(res));
-};
+exports.del = function(req, db) {
+  var currency_id = req.params.currency_id;
+  return currency.owners(currency_id, db).
+  then(session.auth(req, /admin/)).
+  then(close(currency.del)(currency_id, db));
+}
 
-// PUT /api/currencies/:currency
+// PUT /api/currencies/:t
 //
 // Update currency
-//
-// \post_param {
-//  code:string
-//  rate:number
-//  ledger_id:integer
-// }
-// \return {
-// }
 
-var update_arg_schema = {
-  "id": "/update_arg",
+var currency_arg_schema = {
+  "id": "/currency_arg",
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "code": {
+  "code": {
       "type": "string"
     },
     "rate": {
       "$ref": "/positive_number"
+    },
+    "ledger_id": {
+      "$ref": "/positive_integer"
     }
   }
 };
 
-exports.put = function(req, res) {
-  Promise.try(function() {
-    if (!validate(req.body, update_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    return session.authorize_spoof(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.owners.reduce(function(prev, user_id) {
-                return prev || user_id === me.user_id;
-              }, false);
-    });
-  }).
-  then(function() {
-    return currency.update(req.params.currency.currency_id, req.body);
-  }).
-  then(function(currency) {
-    res.json(currency);
-  }).
-  catch(common.handle(res));
-};
-
-// Parses :currency GET parameter
-
-exports.param = function(req, res, next, id) {
-  currency.find_with_owners(id).
-  then(function(currency_with_owners) {
-    extend(req.params, currency_with_owners);
-    next();
-  }).
-  catch(common.handle(res));
+exports.put = function(req, db) {
+  var currency_id = req.params.currency_id;
+  return validate.check(req.body, currency_arg_schema).
+  then(close(currency.owners)(currency_id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(currency.update)(req.params.currency_id, req.body, db));
 };

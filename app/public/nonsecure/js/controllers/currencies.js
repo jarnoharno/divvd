@@ -73,5 +73,8 @@ function($scope, ledger, currency, $modal) {
       updateView();
     });
   };
-  updateView();
+  $scope.ledger.$promise.
+  then(function() {
+    updateView();
+  });
 }]);

@@ -95,11 +95,6 @@ app.get			('/api/ledgers/:ledger/transactions/summary',
 app.param   ('o',                                 ledger.param.owner);
 app.put     ('/api/ledgers/:ledger/owners/:o',    ledger.update_owner);
 
-app.param   ('currency',                          currency.param);
-app.get     ('/api/currencies/:currency',         currency.get);
-app.delete  ('/api/currencies/:currency',         currency.delete);
-app.put     ('/api/currencies/:currency',         currency.put);
-
 app.param   ('person',                            person.param);
 app.get     ('/api/persons/:person',              person.get);
 app.delete  ('/api/persons/:person',              person.delete);
@@ -113,16 +108,6 @@ app.post    ('/api/transactions/:t/amounts',      transaction.add_amount);
 app.put			('/api/transactions/:t/summary',			transaction.update_summary);
 app.get     ('/api/transactions/:t/participants', transaction.participants);
 app.post    ('/api/transactions/:t/participants', transaction.add_participant);
-
-app.param   ('p',                                 participant.param);
-app.get     ('/api/participants/:p',              participant.get);
-app.delete  ('/api/participants/:p',              participant.delete);
-app.put     ('/api/participants/:p',              participant.put);
-
-//app.param   ('amount',                            /^\d+$/);
-//app.get     ('/api/amounts/:amount',              amount.get);
-//app.delete  ('/api/amounts/:amount',              amount.delete);
-//app.put     ('/api/amounts/:amount',              amount.put);
 
 controllers.init(app);
 

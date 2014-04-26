@@ -1,7 +1,8 @@
-var amount = require('./amount');
-var common = require('./common');
-var qdb = require('../lib/qdb');
-var Promise = require('bluebird');
+var participant =   require('./participant');
+var currency =      require('./currency');
+var amount =        require('./amount');
+var common =        require('./common');
+var qdb =           require('../lib/qdb');
 
 function ctrl_wrap(ctrl) {
   return function(req, res) {
@@ -17,7 +18,7 @@ function ctrl_wrap(ctrl) {
 
 exports.init = function(app) {
 
-app.param(function(name, fn){
+app.param(function(name, fn) {
   if (fn instanceof RegExp) {
     return function(req, res, next, val){
       var captures;
@@ -48,6 +49,16 @@ function par(path, f) {
 }
 
 // routes
+
+par     ('participant_id', /^\d+$/);
+get     ('/api/currencies/:participant_id', participant.get);
+del     ('/api/currencies/:participant_id', participant.del);
+put     ('/api/currencies/:participant_id', participant.put);
+
+par     ('currency_id', /^\d+$/);
+get     ('/api/currencies/:currency_id', currency.get);
+del     ('/api/currencies/:currency_id', currency.del);
+put     ('/api/currencies/:currency_id', currency.put);
 
 par     ('amount_id', /^\d+$/);
 get     ('/api/amounts/:amount_id', amount.get);
