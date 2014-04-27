@@ -2,8 +2,7 @@
 
 /* Controllers */
 
-angular.module('divvd.controllers.login', []).
-controller('LoginForm', ['$scope', '$state', 'auth',
+app.controller('LoginForm', ['$scope', '$state', 'auth',
     function($scope, $state, auth) {
   $scope.formuser = {
     username: '',

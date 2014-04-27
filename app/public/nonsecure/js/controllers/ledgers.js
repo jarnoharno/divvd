@@ -19,8 +19,7 @@ function($scope, $modalInstance) {
   };
 }]);
 
-angular.module('divvd.controllers.ledgers', []).
-controller('Ledgers', ['$scope', 'ledger', '$q', 'auth', '$modal', '$state',
+app.controller('Ledgers', ['$scope', 'ledger', '$q', 'auth', '$modal', '$state',
     function($scope, ledger, $q, auth, $modal, $state) {
   $scope.user = auth.data.user;
   $scope.balancedClass = function(b) {

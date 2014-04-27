@@ -6,15 +6,7 @@ var app = angular.module('divvd', [
   'ui.router',
   'ngResource',
 	'xeditable',
-  'divvd.services',
-  'divvd.controllers',
   'googlechart'
-  //'ngRoute',
-  //'divvd.api',
-  //'divvd.filters',
-  //'divvd.services',
-  //'divvd.directives',
-  //'divvd.controllers'
 ]).
 config(['$stateProvider', '$urlRouterProvider',
     function($stateProvider, $urlRouterProvider) {
@@ -98,15 +90,11 @@ config(['$stateProvider', '$urlRouterProvider',
     views: {
       '@member': {
         templateUrl: '/partials/ledger_nav.html',
-        controller: function($scope, currentLedger) {
-          $scope.ledger = currentLedger;
-        }
+        controller: injectCurrentLedger
       },
       'body@': {
         templateUrl: '/partials/ledger.html',
-        controller: function($scope, currentLedger) {
-          $scope.ledger = currentLedger;
-        }
+        controller: injectCurrentLedger
       }
     }
   }).
@@ -115,9 +103,7 @@ config(['$stateProvider', '$urlRouterProvider',
     views: {
       'body@': {
         templateUrl: '/partials/persons.html',
-        controller: function($scope, currentLedger) {
-          $scope.ledger = currentLedger;
-        }
+        controller: injectCurrentLedger
       }
     }
   }).
@@ -126,9 +112,7 @@ config(['$stateProvider', '$urlRouterProvider',
     views: {
       'body@': {
         templateUrl: '/partials/currencies.html',
-        controller: function($scope, currentLedger) {
-          $scope.ledger = currentLedger;
-        }
+        controller: injectCurrentLedger
       }
     }
   }).
@@ -137,9 +121,7 @@ config(['$stateProvider', '$urlRouterProvider',
     views: {
       'body@': {
         templateUrl: '/partials/summary.html',
-        controller: function($scope, currentLedger) {
-          $scope.ledger = currentLedger;
-        }
+        controller: injectCurrentLedger
       }
     }
   }).
@@ -148,9 +130,7 @@ config(['$stateProvider', '$urlRouterProvider',
     views: {
       'body@': {
         templateUrl: '/partials/transaction.html',
-        controller: function($scope, currentLedger) {
-          $scope.ledger = currentLedger;
-        }
+        controller: injectCurrentLedger
       }
     }
   });
@@ -173,7 +153,6 @@ app.run(function(editableOptions) {
 	editableOptions.theme = 'bs3';
 });
 
-//run(['routeHandler', 'auth', function(logoutHandler, auth) {
-  // force instantiation of routeHandler
-  // authenticate as soon as possible
-//}]);
+function injectCurrentLedger($scope, currentLedger) {
+  $scope.ledger = currentLedger;
+}

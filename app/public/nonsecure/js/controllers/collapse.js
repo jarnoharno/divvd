@@ -1,7 +1,6 @@
 'use strict';
 
-angular.module('divvd.controllers.collapse', []).
-controller('Collapse', ['$scope', '$document', function($scope, $document) {
+app.controller('Collapse', ['$scope', '$document', function($scope, $document) {
   $scope.isCollapsed = true;
   // ClickStatus indicates whether menu should be collapsed.
   // If the click event reaches document click handler with clickStatus unset

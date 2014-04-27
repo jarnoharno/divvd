@@ -1,7 +1,6 @@
 'use strict';
 
-angular.module('divvd.services.auth', []).
-factory('q', ['$q', function($q) {
+app.factory('q', ['$q', function($q) {
   return {
     resolve: function(value) {
       var deferred = $q.defer();
