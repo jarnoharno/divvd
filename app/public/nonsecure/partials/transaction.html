@@ -103,21 +103,23 @@
           <td>
             {{amount.person.name}}
           </td>
-          <td class="dropdown">
-            <span e-class="input-sm table-input" editable-text="amount.amount"
-              ng-bind="amount.amount"
-              onbeforesave="setAmount(amount, $data)" buttons="no"></span>
-            <a href class="dropdown-toggle">
-							{{amount.currency.code}}
-							<span class="caret"></span>
-						</a>
-            <ul class="dropdown-menu">
-              <li ng-repeat="currency in ledger.currencies">
-								<a ng-bind="currency.code"
-									ng-click="setAmountCurrency(amount, currency)">
-								</a>
-							</li>
-            </ul>
+          <td>
+            <div class="dropdown">
+              <span e-class="input-sm table-input" editable-text="amount.amount"
+                ng-bind="amount.amount"
+                onbeforesave="setAmount(amount, $data)" buttons="no"></span>
+              <a href class="dropdown-toggle">
+                {{amount.currency.code}}
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu dropdown-table">
+                <li ng-repeat="currency in ledger.currencies">
+                  <a ng-bind="currency.code"
+                    ng-click="setAmountCurrency(amount, currency)">
+                  </a>
+                </li>
+              </ul>
+            </div>
           </td>
         </tr>
       </tbody>
