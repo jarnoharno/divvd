@@ -1,4 +1,36 @@
-# JSON endpoints
+# Divvd
+
+Flexible multi-currency IOUs online. A course project for
+[database project course](http://advancedkittenry.github.io/) at Helsinki
+university.
+
+## Resources
+
+* [Deployed app](https://divvd.herokuapp.com)
+* [Project report](https://divvd.herokuapp.com/doc/dokumentaatio.pdf)
+(in Finnish)
+
+## Installation
+
+Clone this repository with
+
+    $ git clone https://github.com/jlep/divvd.git
+
+Run with
+
+    $ make && make run
+
+or just 
+
+    $ make run
+
+This will initialize a local database, install node dependencies, generate
+a self-signed certificate for testing and run a test server locally. You need
+Node.js, OpenSSH and PostgreSQL on your PATH for this to work.
+
+## JSON endpoints
+
+**This list is not up to date**
 
     POST    /api/login
     POST    /api/signup
@@ -34,7 +66,9 @@
     PUT     /api/amounts/:amount_id
     DELETE  /api/amounts/:amount_id
 
-# JSON types
+## JSON types
+
+**This list is not up to date**
 
     User = {
       username: string
