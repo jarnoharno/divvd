@@ -15,6 +15,22 @@ LOCAL_DB_URL := postgres://divvd:divvd@localhost/divvd
 BUILD_DB := $(BUILD)/db
 BUILD_DB_PREFIX := $(BUILD_DB)/divvd-
 
+INIT_DB := $(BUILD_DB_PREFIX)init-schema
+PEM := $(KEY_PEM) $(CERT_PEM)
+
+# local node installation directories
+
+NODE_SERVER_DIR := app/node_modules
+NODE_SERVER := $(NODE_SERVER_DIR)/init
+NODE_LOCAL_DIR := local/node_modules
+NODE_LOCAL := $(NODE_LOCAL_DIR)/init
+NODE_TEST_DIR := test/node_modules
+NODE_TEST := $(NODE_TEST_DIR)/init
+
+# build everything required for running local server and development scripts
+
+all: $(NODE_SERVER) $(NODE_LOCAL) $(INIT_DB) $(PEM)
+
 # documentation targets
 
 doc: app/public/nonsecure/doc/dokumentaatio.pdf
@@ -97,10 +113,10 @@ $(BUILD_DB_PREFIX)init-data: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	psql divvd divvd -f db/init-schema.sql
 	psql divvd divvd -f db/init-helpers.sql
+	psql divvd divvd -f db/init-view.sql
 	touch $(BUILD_DB_PREFIX)init-schema
 	psql divvd divvd -f db/init-data.sql
 	psql divvd divvd -f db/test-data.sql
-	psql divvd divvd -f db/init-view.sql
 $(BUILD_DB_PREFIX)drop-schema: | $(BUILD_DB_PREFIX)grant-all
 	psql divvd postgres -f db/drop-schema.sql
 	rm $(BUILD_DB_PREFIX)init-schema 2> /dev/null; true
@@ -136,8 +152,6 @@ debug-db:
 
 # create local certificate
 
-PEM := $(KEY_PEM) $(CERT_PEM)
-
 $(BUILD_CERT):
 	mkdir -p $(BUILD_CERT)
 
@@ -146,6 +160,26 @@ $(PEM): | $(BUILD_CERT)
 	openssl req -newkey rsa:2048 -new -nodes -x509 \
 		-keyout $(KEY_PEM) -out $(CERT_PEM) \
 		-subj '/CN=$(LOCALHOST)/O=Divvd LTD./C=FI'
+
+# local node installations
+
+$(NODE_SERVER_DIR):
+	mkdir -p $(NODE_SERVER_DIR)
+$(NODE_SERVER): | $(NODE_SERVER_DIR)
+	bash -c 'cd app && npm install'
+	touch $@
+
+$(NODE_LOCAL_DIR):
+	mkdir -p $(NODE_LOCAL_DIR)
+$(NODE_LOCAL): | $(NODE_LOCAL_DIR)
+	bash -c 'cd local && npm install'
+	touch $@
+
+$(NODE_TEST_DIR):
+	mkdir -p $(NODE_TEST_DIR)
+$(NODE_TEST): | $(NODE_TEST_DIR)
+	bash -c 'cd test && npm install'
+	touch $@
 
 # run local app
 
@@ -161,12 +195,12 @@ define start-local
 	fi;
 endef
 
-debug: $(BUILD_DB_PREFIX)init-schema $(PEM)
+debug: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER)
 	$(call start-local,,\
 		(cd app && node-debug app.js);\
 	)
 
-run: $(BUILD_DB_PREFIX)init-schema $(PEM)
+run: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER)
 	$(call start-local,,\
 		node app/app.js;\
 	)
@@ -174,7 +208,7 @@ run: $(BUILD_DB_PREFIX)init-schema $(PEM)
 # test
 
 .PHONY: test
-test: $(BUILD_DB_PREFIX)init-schema $(PEM)
+test: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER) $(NODE_TEST)
 	$(call start-local,> /dev/null,\
 		(node app/app.js > /dev/null &);\
 		while ! curl -k -s $(LOCALURL)/api/account > /dev/null; do sleep 0.5; done;\
