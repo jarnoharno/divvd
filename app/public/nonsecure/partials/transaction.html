@@ -104,8 +104,9 @@
             {{amount.person.name}}
           </td>
           <td class="dropdown">
-            <span editable-text="amount.amount" ng-bind="amount.amount"
-              onbeforesave="setAmount(amount, $data)"></span>
+            <span e-class="input-sm table-input" editable-text="amount.amount"
+              ng-bind="amount.amount"
+              onbeforesave="setAmount(amount, $data)" buttons="no"></span>
             <a href class="dropdown-toggle">
 							{{amount.currency.code}}
 							<span class="caret"></span>
