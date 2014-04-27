@@ -1,20 +1,21 @@
 var User = require('../models/user');
 var crypt = require('../lib/qcrypt');
 var Hox = require('../lib/hox');
-var qdb = require('../lib/qdb');
 var util = require('./util');
 var shitorm = require('../lib/shitorm');
 var buffertools = require('buffertools');
+var dada = require('../lib/dada');
 
 var dao = module.exports = {};
 
 var construct_user = util.construct(User);
 
 dao.create = function(body, db) {
-  db = db || qdb;
   return crypt(body.password).
   then(function(res) {
-    return db.query('insert into "user" (username, hash, salt) values ($1, $2, $3) returning username, role, user_id;',
+    return db.query(
+        'insert into "user" (username, hash, salt) values ($1, $2, $3) ' +
+        'returning username, role, user_id;',
         [body.username, res.hash, res.salt]);
   }).
   error(util.pg_error).
@@ -26,8 +27,9 @@ function not_found() {
 }
 
 dao.find_username_and_password = function(body, db) {
-  db = db || qdb;
-  return db.query('select username, role, user_id, hash, salt from "user" where username = $1;',
+  return db.query(
+      'select username, role, user_id, hash, salt from "user" ' +
+      'where username = $1;',
       [body.username]).
   then(function(result) {
     if (!result.rowCount) {
@@ -46,19 +48,16 @@ dao.find_username_and_password = function(body, db) {
 };
 
 dao.find_by_ledger_id = function(ledger_id, db) {
-  db = db || qdb;
-  return db.query('select username, role, user_id, currency_id, total_credit_currency_id from "user" natural join owner where ledger_id = $1;',
+  return db.query(
+      'select username, role, user_id, currency_id, total_credit_currency_id ' +
+      'from "user" natural join owner where ledger_id = $1;',
       [ledger_id]).
-  then(function(result) {
-    return result.rows.map(function(row) {
-      return new User(row);
-    });
-  });
+  then(util.construct_set(User));
 };
 
 dao.find_username = function(username, db) {
-  db = db || qdb;
-  return db.query('select username, role, user_id from "user" where username = $1 limit 1;',
+  return db.query(
+      'select username, role, user_id from "user" where username = $1 limit 1;',
       [username]).
   then(construct_user);
 };

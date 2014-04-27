@@ -17,45 +17,15 @@ var schemas = require('./schemas');
 // GET /api/ledgers
 //
 // Return all ledgers owned by current user
-//
-// \return [{
-//  title:string
-//  total_currency_id:integer
-//  ledger_id:integer
-// }]
 
-exports.ledgers = function(req, res) {
-  session.current_user(req).
-  then(function(usr) {
-    return ledger.find_by_user_id(usr.user_id);
-  }).
-  then(function(ledgers) {
-    res.json(ledgers);
-  }).
-  catch(common.handle(res));
+exports.all = function(req, db) {
+  return ledger.find_by_user_id(req.session.user.user_id);
 };
 
 // POST /api/ledgers
 //
 // Creates a new ledger. Admin can create new ledger
 // for anyone, other roles only for themselves.
-//
-// \post_param title:string                   (default:"New ledger")
-// \post_param total_currency: {
-//   code:string
-//   rate:number
-// }
-// \post_param user_id:                       (default: <current user>)
-//
-// \return {
-//  title:string
-//  currency_id:integer
-//  owners: [{
-//    username:string
-//    user_id:integer
-//  }]
-//  ledger_id:integer
-// }
 
 var ledger_arg_schema = {
   "id": "/ledger_param",
@@ -90,96 +60,43 @@ var ledger_arg_default = {
   }
 };
 
-// maybe defaults should be defined only at the database level?
-exports.create = function(req, res) {
-  Promise.try(function() {
-    if (!validate(req.body, ledger_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
+exports.pos = function(req, db) {
+  return validate.check(req.body, ledger_arg_schema).
+  then(function() {
     var arg = deepmerge(ledger_arg_default, req.body);
     if (!arg.user_id) {
       arg.user_id = req.session.user.user_id;
     }
-    return session.authorize(req, function(me) {
-      return  me.user_id === arg.user_id ||
-              me.role.match(/admin/);
-    }).
-    then(function() {
-      return ledger.create(arg);
-    });
-  }).
-  then(function(ledger) {
-    res.json(ledger);
-  }).
-  catch(common.handle(res));
+    return session.auth(req, /admin/)([{
+      user_id: arg.user_id
+    }]).
+    then(close(ledger.create)(arg, db));
+  });
 }
 
-// GET /api/ledgers/:ledgerId
+// GET /api/ledgers/:id
 //
 // Returns the requested ledger
-//
-// \return {
-//  title:string
-//  currency_id:integer
-//  owners: [{
-//    username:string
-//    user_id:integer
-//  }]
-//  ledger_id:integer
-// }
 
-exports.ledger = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/debug|admin/) ||
-            req.params.ledger.owners.reduce(function(prev, owner) {
-              return prev || owner.user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    res.json(req.params.ledger);
-  }).
-  catch(common.handle(res));
+exports.get = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
+  then(close(ledger.find)(req.params.id, db));
 };
 
-// DELETE /api/ledgers/:ledger
+// DELETE /api/ledgers/:id
 //
 // Deletes the requested ledger
-//
-// \return {
-//  title:string
-//  total_currency_id:integer
-//  ledger_id:integer
-// }
 
-exports.delete = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/admin/) ||
-            req.params.ledger.owners.reduce(function(prev, owner) {
-              return prev || owner.user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    return ledger.delete(req.params.ledger.ledger_id);
-  }).
-  then(function(ledger) {
-    res.json(ledger);
-  }).
-  catch(common.handle(res));
+exports.del = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin/)).
+  then(close(ledger.delete)(req.params.id, db));
 };
 
-// PUT /api/ledgers/:ledger
+// PUT /api/ledgers/:id
 //
 // Update ledger
-//
-// \post_param {
-//  title:string
-//  total_currency_id:integer
-// }
-// \return {
-//  title:string
-//  total_currency_id:integer
-//  ledger_id:integer
-// }
 
 var update_arg_schema = {
   "id": "/update_arg",
@@ -195,114 +112,60 @@ var update_arg_schema = {
   }
 };
 
-exports.update = function(req, res) {
-  Promise.try(function() {
-    if (!validate(req.body, update_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    return session.authorize_spoof(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.ledger.owners.reduce(function(prev, owner) {
-                return prev || owner.user_id === me.user_id;
-              }, false);
-    });
-  }).
-  then(function() {
-    return ledger.update(req.params.ledger.ledger_id, req.body);
-  }).
-  then(function(ledger) {
-    res.json(ledger);
-  }).
-  catch(common.handle(res));
+exports.put = function(req, db) {
+  return validate.check(req.body, update_arg_schema).
+  then(close(ledger.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(ledger.update)(req.params.id, req.body, db));
 };
 
 // GET /api/ledgers/summary
 //
 // Return summary of all ledgers owned by the currenct user
 
-exports.ledgers_summary = function(req, res) {
-  session.current_user(req).
-  then(function(usr) {
-    return ledger.ledgers_summary(usr.user_id);
-  }).
-  then(function(summary) {
-    res.json(summary);
-  }).
-  catch(common.handle(res));
+exports.ledgers_summary = function(req, db) {
+  return ledger.ledgers_summary(req.session.user.user_id);
 };
 
-// GET /api/ledgers/:ledger/summary
+// GET /api/ledgers/:id/summary
 //
 // Return a summary of current users key figures regarding the requested
 // ledger
 
-exports.summary = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/admin|debug/) ||
-            req.params.ledger.owners.reduce(function(prev, owner) {
-              return prev || owner.user_id === me.user_id;
-            }, false);
-  }).
+exports.summary = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
   then(function(usr) {
-    return ledger.summary(req.params.ledger.ledger_id, usr.user_id);
-  }).
-  then(function(summary) {
-    res.json(summary);
-  }).
-  catch(common.handle(res));
+    return ledger.summary(req.params.id, usr.user_id, db);
+  });
 };
-// GET /api/ledgers/:ledger/balances
+
+// GET /api/ledgers/:id/balances
 //
 // Return balances between persons in this ledger
 
-exports.balances = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  me.role.match(/admin|debug/) ||
-            req.params.ledger.owners.reduce(function(prev, owner) {
-              return prev || owner.user_id === me.user_id;
-            }, false);
-  }).
-  then(function() {
-    return ledger.balances(req.params.ledger.ledger_id);
-  }).
-  then(function(b) {
-    res.json(b);
-  }).
-  catch(common.handle(res));
+exports.balances = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
+  then(close(ledger.balances)(req.params.id, db));
 };
 
-// GET /api/ledgers/:ledger/transactions/summary
+// GET /api/ledgers/:id/transactions/summary
 //
 // Return a summary of current users key figures per transaction regarding
 // the requested ledger
 
-exports.transactions_summary = function(req, res) {
-  session.authorize_spoof(req, function(me) {
-    return  req.params.ledger.owners.reduce(function(prev, owner) {
-              return prev || owner.user_id === me.user_id;
-            }, false);
-  }).
+exports.transactions_summary = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
   then(function(usr) {
-    return ledger.transactions_summary(req.params.ledger.ledger_id, usr.user_id);
-  }).
-  then(function(transactions) {
-    res.json(transactions);
-  }).
-  catch(common.handle(res));
+    return ledger.transactions_summary(req.params.id, usr.user_id, db);
+  });
 };
 
-// PUT /api/ledgers/:ledger/owners/:owner
+// PUT /api/ledgers/:id/owners/:od
 //
 // Update owner
-//
-// \post_param {
-//  currency_id:integer
-// }
-// \return {
-//  user_id:integer
-//  ledger_id:integer
-//  currency_id:integer
-// }
 
 var update_owner_schema = {
   "id": "/update_owner",
@@ -318,26 +181,13 @@ var update_owner_schema = {
   }
 };
 
-exports.update_owner = function(req, res) {
-  Promise.try(function() {
-    if (!validate(req.body, update_owner_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    return session.authorize_spoof(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.ledger.owners.reduce(function(prev, owner) {
-                return prev || owner.user_id === me.user_id;
-              }, false);
-    });
-  }).
+exports.update_owner = function(req, db) {
+  return validate.check(req.body, update_owner_schema).
+  then(close(ledger.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
   then(function() {
-    return ledger.update_owner(req.params.ledger.ledger_id,
-			req.params.owner.user_id, req.body);
-  }).
-  then(function(ledger) {
-    res.json(ledger);
-  }).
-  catch(common.handle(res));
+    return ledger.update_owner(req.params.id, req.params.od, req.body, db);
+  });
 }
 
 exports.currencies = function(req, db) {
@@ -346,157 +196,38 @@ exports.currencies = function(req, db) {
   then(close(currency.find_by_ledger_id)(req.params.id, db));
 };
 
-exports.persons = function(req, res) {
+exports.persons = function(req, db) {
   return ledger.owners(req.params.id, db).
   then(session.auth(req, /admin|debug/)).
   then(close(person.find_by_ledger_id)(req.params.id, db));
 };
 
-exports.transactions = function(req, res) {
-  return transaction.find_by_ledger_id(req.params.ledger.ledger_id).
-  then(function(transactions) {
-    res.json(transactions);
-  }).
-  catch(common.handle(res));
+exports.transactions = function(req, db) {
+  return ledger.owners(req.params.id, db).
+  then(session.auth(req, /admin|debug/)).
+  then(close(transaction.find_by_ledger_id)(req.params.id, db));
 };
 
-var currency_arg_schema = {
-  "id": "/currency_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "code": {
-      "type": "string"
-    },
-    "rate": {
-      "$ref": "/positive_number"
-    }
-  }
-};
-
-var currency_arg_default = {
-  "code": "€",
-  "rate": 1.0
-};
-
-exports.add_currency = function(req, res) {
-  Promise.try(function() {
-    if (!validate(req.body, currency_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-    var arg = deepmerge(currency_arg_default, req.body);
-    arg.ledger_id = req.params.ledger.ledger_id;
-    return session.authorize(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.ledger.owners.reduce(function(prev, owner) {
-                return prev || owner.user_id === me.user_id;
-              }, false);
-    }).
-    then(function() {
-      return currency.create(arg);
-    });
-  }).
-  then(function(currency) {
-    res.json(currency);
-  }).
-  catch(common.handle(res));
+exports.add_currency = function(req, db) {
+  req.body.ledger_id = req.params.id;
+  return validate.check(req.body, schemas.currency).
+  then(close(ledger.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(currency.create)(req.body, db));
 }
-
-var person_arg_schema = {
-  "id": "/person_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "name": {
-      "type": "string"
-    },
-    "currency_id": {
-      "$ref": "/positive_number"
-    },
-    "user_id": {
-      "$ref": "/positive_number"
-    }
-  }
-};
 
 exports.add_person = function(req, db) {
   req.body.ledger_id = req.params.id;
-  console.log(req.body);
   return validate.check(req.body, schemas.person).
   then(close(ledger.owners)(req.params.id, db)).
   then(session.auth(req, /admin/)).
   then(close(person.create)(req.body, db));
 };
 
-var transaction_arg_schema = {
-  "id": "/transaction_arg",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "description": {
-      "type": "string"
-    },
-    "date": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "type": {
-      "type": "string"
-    },
-    "location": {
-      "type": "string"
-    },
-    "transfer": {
-      "type": "boolean"
-    },
-    "currency_id": {
-      "$ref": "/positive_integer"
-    }
-  }
-};
-
-exports.add_transaction = function(req, res) {
-  Promise.try(function() {
-    var arg = req.body;
-    if (!validate(arg, transaction_arg_schema)) {
-      throw new Hox(400, "unexpected parameters");
-    }
-
-    arg.ledger_id = req.params.ledger.ledger_id;
-    arg.currency_id = arg.currency_id || req.params.ledger.total_currency_id;
-
-    return session.authorize(req, function(me) {
-      return  me.role.match(/admin/) ||
-              req.params.ledger.owners.reduce(function(prev, owner) {
-                return prev || owner.user_id === me.user_id;
-              }, false);
-    }).
-    then(function() {
-      return transaction.create(arg);
-    });
-  }).
-  then(function(transaction) {
-    res.json(transaction);
-  }).
-  catch(common.handle(res));
+exports.add_transaction = function(req, db) {
+  req.body.ledger_id = req.params.id;
+  return validate.check(req.body, schemas.transaction).
+  then(close(ledger.owners)(req.params.id, db)).
+  then(session.auth(req, /admin/)).
+  then(close(transaction.create)(req.body, db));
 }
-
-// Parses :ledger GET parameter
-// we don't need the full ledger object each time but this is just easier
-
-exports.param = {};
-exports.param.ledger = function(req, res, next, id) {
-  ledger.find(id).
-  then(function(ledger) {
-    req.params.ledger = ledger;
-    next();
-  }).
-  catch(common.handle(res));
-};
-
-exports.param.owner = function(req, res, next, id) {
-  req.params.owner = {
-    user_id: id
-  };
-  next();
-};

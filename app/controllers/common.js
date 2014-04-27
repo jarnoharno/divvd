@@ -5,28 +5,6 @@ var Promise = require('bluebird');
 
 var common = module.exports = {}
 
-common.basic_http = function(req, res, next) {
-  Promise.try(function() {
-    if (req.session.user) {
-      return;
-    }
-    var body = auth(req);
-    if (!body) {
-      return;
-    }
-    return user.find_username_and_password(body).
-    then(function(usr) {
-      req.session.user = usr;
-    }).
-    catch(function() {
-      // ignore errors
-    });
-  }).
-  finally(function() {
-    next();
-  });
-};
-
 common.parse_basic_auth = function(req) {
   var body = auth(req);
   if (body) {
@@ -39,11 +17,9 @@ common.parse_basic_auth = function(req) {
   }
 }
 
-common.require_authentication = function(req, res, next) {
-
-  // used in error handling
-  res.basic_auth = !!(req.query && req.query.auth === 'basic');
-
+common.require_auth = function(req, res, next) {
+  // used in error reporting in lib/hox.js
+  res.basic_auth = req.params.auth !== 'hidden';
   if (req.session.user) {
     next();
     return;
@@ -61,21 +37,17 @@ common.require_authentication = function(req, res, next) {
   catch(common.handle(res));
 };
 
-common.is_logged = function(req) {
-  return !!req.session.user;
-};
-
 common.error = function(res, err) {
   res.json(500, { message: err.message });
 };
 
-common.handle = function(res, auth) {
+common.handle = function(res) {
   return function(err) {
     if (err instanceof Hox) {
       if (err.code == 500) {
         console.error(err.stack);
       }
-      err.send(res, auth);
+      err.send(res);
     } else {
       console.error(err.stack);
       res.json(500, { message: "server error" });

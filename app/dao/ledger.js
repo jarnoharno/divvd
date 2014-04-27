@@ -18,19 +18,9 @@ var dao = module.exports = {};
 //
 // Creates a new ledger and inserts a new currency as the total value
 // currency. Owner is inserted as a person in the ledger.
-//
-// title:string
-// total_currency: {
-//   code:string
-//   rate:number
-// }
-// user_id:integer owner's user_id
-//
-// return () -> Promise Ledger
 
 dao.create = function(props, db) {
   db = db || qdb;
-
   return db.transaction(function(db) {
 
     // bind to-be-returned ledger
@@ -136,23 +126,13 @@ dao.find = function(ledger_id, db) {
   });
 };
 
-dao.find_by_user_id = function(user_id, db) {
-  db = db || qdb;
-  return db.query('select title, total_currency_id, ledger_id from ledger natural join ledger_settings natural join owner where user_id = $1;',
-      [user_id]).
-  then(function(result) {
-    return result.rows.map(function(row) {
-      return new Ledger(row);
-    });
-  });
-}
-
-// props = {
-//  title:string
-//  total_currency_id:integer
-// }
-
-// we might be able to do updates with pg views
+dao.find_by_user_id = dada.array(function(pk, db) {
+  return db.query(
+      'select title, total_currency_id, ledger_id ' +
+      'from ledger natural join ledger_settings natural ' +
+      'join owner where user_id = $1;',
+      [pk]);
+}, Ledger);
 
 dao.update = function(ledger_id, props, db) {
   db = db || qdb;
@@ -185,16 +165,16 @@ dao.update = function(ledger_id, props, db) {
 
 dao.update_owner = function(ledger_id, user_id, props, db) {
   db = db || qdb;
-	var set = Object.keys(props).map(function(k, i) {
-		return k + ' = $' + (i + 3);
-	}).join(', ');
+  var set = Object.keys(props).map(function(k, i) {
+    return k + ' = $' + (i + 3);
+  }).join(', ');
   return db.query('update owner set ' + set +
-		' where ledger_id = $1 and user_id = $2 returning *;',
-		[ledger_id, user_id].concat(Object.keys(props).map(function(k) {
-			return props[k];
-		}))
-	).
-	then(util.check_empty).
+    ' where ledger_id = $1 and user_id = $2 returning *;',
+    [ledger_id, user_id].concat(Object.keys(props).map(function(k) {
+      return props[k];
+    }))
+  ).
+  then(util.check_empty).
   then(util.first_row);
 }
 
@@ -219,29 +199,29 @@ dao.ledgers_summary = function(user_id, db) {
 };
 
 dao.summary = function(ledger_id, user_id, db) {
-	db = db || qdb;
-	return db.query('select * from ledger_summary_web_view where ledger_id = $1 and user_id = $2;',
-			[ledger_id, user_id]).
-	then(util.check_empty).
-	then(util.first_row);
+  db = db || qdb;
+  return db.query('select * from ledger_summary_web_view where ledger_id = $1 and user_id = $2;',
+      [ledger_id, user_id]).
+  then(util.check_empty).
+  then(util.first_row);
 };
 
 dao.balances = function(ledger_id, db) {
-	db = db || qdb;
-	return db.query('select * from balance_web_view where ledger_id = $1 order by rel_user_balance desc;',
-			[ledger_id]).
-	then(function(result) {
+  db = db || qdb;
+  return db.query('select * from balance_web_view where ledger_id = $1 order by rel_user_balance desc;',
+      [ledger_id]).
+  then(function(result) {
     return result.rows;
   });
 };
 
 dao.transactions_summary = function(ledger_id, user_id, db) {
-	db = db || qdb;
-	return db.query('select * from transactions_web_view where ledger_id = $1 and user_id = $2 order by transaction_id;',
-			[ledger_id, user_id]).
-	then(function(result) {
-		return result.rows;
-	});
+  db = db || qdb;
+  return db.query('select * from transactions_web_view where ledger_id = $1 and user_id = $2 order by transaction_id;',
+      [ledger_id, user_id]).
+  then(function(result) {
+    return result.rows;
+  });
 };
 
 // automatically generated stuff

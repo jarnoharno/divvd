@@ -4,7 +4,9 @@ var Hox = require('./hox');
 var session = module.exports = {};
 
 session.delete_current = function(req) {
+  var usr = req.session.user;
   delete req.session.user;
+  return usr;
 };
 
 session.delete = function(req, user_id) {
@@ -34,6 +36,16 @@ session.current_user = function(req) {
 
 session.auth = function(req, pattern) {
   return function(owners) {
+    if (owners === undefined) {
+      owners = [];
+    } else if (typeof owners === 'number') {
+      owners = {
+        user_id: owners
+      };
+    }
+    if (!(owners instanceof Array)) {
+      owners = [owners];
+    }
     return session.current_user(req).
     bind(owners).
     then(function(usr) {
@@ -46,6 +58,13 @@ session.auth = function(req, pattern) {
       throw new Hox(404, 'not found');
     });
   };
+};
+
+session.unspoof = function() {
+  if (err instanceof Hox) {
+    throw new Hox(401, 'unauthorized');
+  }
+  throw err;
 };
 
 session.authorize = function(req, authf, spoof) {

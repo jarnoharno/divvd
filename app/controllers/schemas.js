@@ -71,3 +71,33 @@ exports.person = {
     }
   }
 };
+
+exports.transaction = {
+  "id": "/transaction_arg",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "transfer": {
+      "type": "boolean"
+    },
+    "currency_id": {
+      "$ref": "/positive_integer"
+    },
+    "ledger_id": {
+      "$ref": "/positive_integer"
+    }
+  }
+};

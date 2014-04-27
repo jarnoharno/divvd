@@ -49,61 +49,9 @@ app.use(express.session({
   proxy: true
 }));
 
+// init routes
+
 app.use(app.router);
-
-// json api
-//
-// json post / cookie authentication endpoints
-// these will always send custom www-authentication header because
-// basic http authentication is not accepted. the reason for this is that
-// we don't want web clients to authenticate automatically by sending
-// credentials with http auth in case they have visited the api pages.
-
-app.get     ('/api/account',                      account.account);
-app.post    ('/api/login',                        account.login);
-app.get     ('/api/logout',                       account.logout);
-app.post    ('/api/signup',                       account.signup);
-app.delete  ('/api/account',                      account.delete_account);
-
-// all /api/ requests from here on can be authenticated with basic http
-// authentication
-
-app.all     (/^\/api\//,                          common.require_authentication);
-app.param   ('user',                              user.param.user);
-app.get     ('/api/users',                        user.users);
-app.get     ('/api/users/:user',                  user.user);
-app.delete  ('/api/users/:user',                  user.delete);
-app.get     ('/api/users/:user/ledgers',          user.ledgers);
-
-app.param   ('ledger',                            ledger.param.ledger);
-app.get     ('/api/ledgers',                      ledger.ledgers);
-app.post    ('/api/ledgers',                      ledger.create);
-app.get     ('/api/ledgers/summary',              ledger.ledgers_summary);
-app.get     ('/api/ledgers/:ledger',              ledger.ledger);
-app.delete  ('/api/ledgers/:ledger',              ledger.delete);
-app.put     ('/api/ledgers/:ledger',              ledger.update);
-app.get     ('/api/ledgers/:ledger/summary',      ledger.summary);
-app.get     ('/api/ledgers/:ledger/balances',     ledger.balances);
-//app.get     ('/api/ledgers/:ledger/currencies',   ledger.currencies);
-app.post    ('/api/ledgers/:ledger/currencies',   ledger.add_currency);
-//app.get     ('/api/ledgers/:ledger/persons',      ledger.persons);
-//app.post    ('/api/ledgers/:ledger/persons',      ledger.add_person);
-app.get     ('/api/ledgers/:ledger/transactions', ledger.transactions);
-app.post    ('/api/ledgers/:ledger/transactions', ledger.add_transaction);
-app.get			('/api/ledgers/:ledger/transactions/summary',
-																									ledger.transactions_summary);
-app.param   ('o',                                 ledger.param.owner);
-app.put     ('/api/ledgers/:ledger/owners/:o',    ledger.update_owner);
-
-app.param   ('t',                                 transaction.param);
-app.get     ('/api/transactions/:t',              transaction.get);
-app.delete  ('/api/transactions/:t',              transaction.delete);
-app.put     ('/api/transactions/:t',              transaction.put);
-//app.post    ('/api/transactions/:t/amounts',      transaction.add_amount);
-app.put			('/api/transactions/:t/summary',			transaction.update_summary);
-app.get     ('/api/transactions/:t/participants', transaction.participants);
-//app.post    ('/api/transactions/:t/participants', transaction.add_participant);
-
 controllers.init(app);
 
 // static secure content

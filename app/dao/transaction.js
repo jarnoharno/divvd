@@ -32,17 +32,29 @@ var orm = shitorm({
   constructor: Transaction
 });
 
+dao.update = orm.update;
+dao.delete = orm.delete;
+
 dao.currency = dada.single(function(pk, db) {
   return db.query(
       'select currency_id from transaction where transaction_id = $1;',
       [pk]);
 });
 
+var create_transaction = orm.create_with_defaults({
+  currency_id: {
+    table: {
+      name: 'ledger_settings',
+      where: 'ledger_id',
+      col: 'total_currency_id'
+    }
+  }
+});
+
 dao.create = function(props, db) {
   db = db || qdb;
-  var currency_id = props.currency_id || null;
   return db.transaction(function(db) {
-    return orm.create(props, db).
+    return create_transaction(props, db).
     then(function(transaction) {
 
       // create settings for every owner
@@ -60,8 +72,10 @@ dao.create = function(props, db) {
 
       then(function() {
         return db.query(
-            'insert into participant (currency_id, transaction_id, person_id) '+
-            'select $1, $2, person_id from person where ledger_id = $3 returning *;',
+            'insert into participant ' +
+            '(currency_id, transaction_id, person_id) ' +
+            'select $1, $2, person_id from person where ledger_id = $3 ' +
+            'returning *;',
             [transaction.currency_id,
             transaction.transaction_id,
             transaction.ledger_id]);
@@ -82,7 +96,10 @@ dao.update_summary = function(transaction_id, user_id, props, db) {
 		return k + ' = $' + (i + 3);
 	}).join(', ');
 	return db.query('update owner_transaction_settings set ' + set +
-		' where owner_transaction_settings_id = (select owner_transaction_settings_id from owner_transaction_settings join owner using (owner_id) where user_id = $1 and transaction_id = $2) returning *;',
+		' where owner_transaction_settings_id =' +
+    ' (select owner_transaction_settings_id from owner_transaction_settings' +
+    ' join owner using (owner_id) where user_id = $1 and transaction_id = $2)' +
+    ' returning *;',
 		[user_id, transaction_id].concat(Object.keys(props).map(function(k) {
 			return props[k];
 		}))
@@ -91,21 +108,16 @@ dao.update_summary = function(transaction_id, user_id, props, db) {
 	then(util.first_row);
 };
 
-dao.update = orm.update;
-dao.delete = orm.delete;
-
 dao.find_by_ledger_id = function(ledger_id, db) {
-  db = db || qdb;
   return db.query('select * from transaction_view where ledger_id = $1;',
       [ledger_id]).
   then(util.construct_set(Transaction));
 };
 
-dao.find = function(transaction_id, db) {
-  db = db || qdb;
+dao.find = function(pk, db) {
   return db.transaction(function(db) {
     return db.query('select * from transaction_view where transaction_id = $1;',
-        [transaction_id]).
+        [pk]).
     then(util.construct(Transaction)).
     then(function(t) {
       return participant.find_by_transaction_id(t.transaction_id, db).
@@ -120,27 +132,6 @@ dao.find = function(transaction_id, db) {
         return t;
       });
     }); 
-  });
-};
-
-dao.find_with_owners = function(transaction_id, db) {
-  db = db || qdb;
-  return db.transaction(function(db) {
-    return Promise.bind({}).
-    then(function() {
-      return dao.find(transaction_id, db);
-    }).
-    then(function(transaction) {
-      this.transaction = transaction;
-      return db.query('select user_id from owner where ledger_id = $1;',
-          [transaction.ledger_id]);
-    }).
-    then(function(result) {
-      this.owners = result.rows.map(function(row) {
-        return row.user_id;
-      });
-      return this;
-    });
   });
 };
 

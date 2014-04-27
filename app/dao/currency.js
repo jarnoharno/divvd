@@ -20,7 +20,12 @@ dao.update = orm.update;
 dao.delete = orm.delete;
 dao.find = orm.find;
 
-dao.find_by_ledger_id = orm.find_by.bind(undefined, 'ledger_id');
+dao.find_by_ledger_id = dada.array(function(ledger_id, db) {
+  return db.query(
+      'select * from currency_active ' +
+      'where ledger_id = $1 order by currency_id;',
+      [ledger_id]);
+}, Currency);
 
 dao.owners = dada.array(function(currency_id, db) {
   return db.query(
