@@ -1,0 +1,407 @@
+Kaikkien virheviestien runkona on seuraava JSON-olio:
+\begin{Verbatim}
+{
+  message:text
+}
+\end{Verbatim}
+
+\subsection{Palveluosoitteet}
+
+\subsubsection{POST /api/login}
+Kirjaa käyttäjän sisään.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  username:text
+  password:text
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{POST /api/signup}
+Rekisteröi käyttäjän.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  username:text
+  password:text
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{GET /api/account}
+Palauttaa kirjautuneen käyttäjän tiedot.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{DELETE /api/account}
+Kirjaa ulos ja poistaa käyttäjän tietokannasta.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+}
+\end{Verbatim}
+
+\subsubsection{GET /api/logout}
+Kirjaa ulos käyttäjän.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{GET /api/users}
+Palauttaa listan käyttäjistä. Vaatii pääkäyttäjän roolin.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+[ User ]
+\end{Verbatim}
+
+\subsubsection{GET /api/users/:userName}
+Palauttaa käyttäjän.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+User
+\end{Verbatim}
+
+\subsubsection{DELETE /api/users/:userName}
+Poistaa käyttäjän. Palauttaa poistetun käyttäjän ilman tunnistetta.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+{
+  username:text
+  role:text
+}
+\end{Verbatim}
+
+\subsubsection{GET /api/users/:userName/ledgers}
+Listaa kaikki käyttäjän tilikirjat.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+[ Ledger ]
+\end{Verbatim}
+
+\subsubsection{POST /api/ledgers}
+Lisää uuden tilikirjan. Tunnistautunut käyttäjä lisätään automaattisesti
+omistajiin. Kaikki parametrit ovat valinnaisia.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  title:text
+  currency_id:integer // valuutta, jossa kokonaisarvot näytetään
+  owners: [User]
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Ledger
+\end{Verbatim}
+
+\subsubsection{GET /api/ledgers/:ledgerId}
+
+Palauttaa tilikirjan.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Ledger
+\end{Verbatim}
+
+\subsubsection{PUT /api/ledgers/:ledgerId}
+
+Muokkaa tilikirjaa. Lista-tyyppisiä kenttiä ei voi muokata tämän
+palveluosoitteen kautta.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+Ledger
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Ledger
+\end{Verbatim}
+
+\subsubsection{DELETE /api/ledgers/:ledgerId}
+
+Poistaa tilikirjan.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Ledger
+\end{Verbatim}
+
+\subsubsection{POST /api/ledgers/:ledgerId/currencies}
+
+Lisää valuutan tilikirjaan.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  code:text
+  rate:numeric
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Currency
+\end{Verbatim}
+
+\subsubsection{GET /api/ledgers/:ledgerId/transactions}
+
+Listaa tilikirjan tilitapahtumat.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+[Transaction]
+\end{Verbatim}
+
+\subsubsection{POST /api/ledgers/:ledgerId/transactions}
+
+Lisää tilitapahtuman tilikirjaan. Kaikki parametrit ovat valinnaisia.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  description:text
+  date:timestamp
+  type:text
+  location:text
+  transfer:boolean
+  currency_id:integer // Valuutta, jossa tilitapahtuman kokonaisarvo näytetään.
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Transaction
+\end{Verbatim}
+
+\subsubsection{POST /api/ledgers/:ledgerId/persons}
+
+Lisää tilikirjaan henkilön.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  name:text
+  currency_id:integer // Valuutta, jossa henkilön kokonaissaldo näytetään.
+  user_id:integer
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Person
+\end{Verbatim}
+
+\subsubsection{GET /api/transactions/:transactionId}
+
+Palauttaa tilitapahtuman.
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Transaction
+\end{Verbatim}
+
+\subsubsection{PUT /api/transactions/:transactionId}
+
+Muokkaa tilitapahtumaa. Lista-tyyppisiä kenttiä ei voi muokata tämän
+paluuosoitteen kautta.
+
+\begin{Verbatim}
+{
+  description:text
+  date:timestamp
+  type:text
+  location:text
+  transfer:boolean
+  currency_id:integer // tilitapahtuman kokonaisarvo presentaatio
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Transaction
+\end{Verbatim}
+
+\subsubsection{DELETE /api/transactions/:transactionId}
+
+Poistaa tilitapahtuman
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Transaction
+\end{Verbatim}
+
+\subsubsection{POST /api/transactions/:transactionId/participant}
+
+Lisää tilitapahtumaan osapuolen. Osapuolen on oltava osallisena tilikirjassa,
+johon tilitapahtuma kuuluu.
+
+\textbf{Parametrit}
+\begin{Verbatim}
+{
+  share_debt:boolean
+  credit_currency_id:integer
+  debit_currency_id:integer
+  shared_debt_currency_id:integer
+  person_id:integer
+}
+\end{Verbatim}
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Participant
+\end{Verbatim}
+
+\subsubsection{GET /api/participants/:participantId}
+
+Palauttaa osapuolen
+
+\textbf{Palautusarvo}
+200 OK
+\begin{Verbatim}
+Transaction
+\end{Verbatim}
+
+\subsubsection{GET /api/currencies/:currencyId}
+
+\subsubsection{PUT /api/currencies/:currencyId}
+
+\subsubsection{DELETE /api/currencies/:currencyId}
+
+\subsection{Tyypit}
+
+\subsubsection{User}
+\begin{Verbatim}
+{
+  username:text
+  role:text
+  user_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{Ledger}
+\begin{Verbatim}
+{
+  title:text
+  currency_id:integer // valuutta, jossa kokonaisarvot näytetään
+  user_id:integer
+  currencies: [Currency]
+  persons: [Person]
+  owners: [User]
+}
+\end{Verbatim}
+
+\subsubsection{Transaction}
+\begin{Verbatim}
+{
+  description:text
+  date:timestamp
+  type:text
+  location:text
+  transfer:boolean
+  currency_id:integer // tilitapahtuman kokonaisarvo presentaatio
+  participants: [Participant]
+}
+\end{Verbatim}
+
+\subsubsection{Person}
+\begin{Verbatim}
+{
+  name:text
+  currency_id:integer
+  user_id:integer
+  person_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{Currency}
+\begin{Verbatim}
+{
+  code:text
+  rate:numeric
+  currency_id:integer
+}
+\end{Verbatim}
+
+\subsubsection{Participant}
+\begin{Verbatim}
+{
+  share_debt:boolean
+  credit_currency_id:integer
+  debit_currency_id:integer
+  shared_debt_currency_id:integer
+  person_id:integer
+  amounts: [Amount]
+}
+\end{Verbatim}
+
+\subsubsection{Amount}
+\begin{Verbatim}
+{
+  amount:number
+  currency_id:integer
+  amount_id:integer
+}
+\end{Verbatim}

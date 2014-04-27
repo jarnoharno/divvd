@@ -17,7 +17,7 @@
 \author{Jarno Leppänen}
 \title{Divvd -- Useilla valuutoilla toimiva kustannusten jako}
 \subtitle{Dokumentaatio}
-\date{6.4.2014}
+\date{27.4.2014}
 
 \begin{document}
 
@@ -46,6 +46,8 @@ takaisinmaksuun. Takaisinmaksujärjestely voidaan ratkaista esimerkiksi
 minimoimalla järjestelyssä tapahtuvien transaktioiden
 lukumäärä\cite{verhoeff2004settling}.
 
+Palautetussa työssä takaisinmaksujärjestelyn laatimista ei ole toteutettu.
+
 \subsection{Toimintaympäristö}
 
 Ohjelma toteutetaan web-sovelluksena heroku-PaaS-palvelun päälle.
@@ -54,14 +56,15 @@ Selainkäyttöliittymän sovelluskehyksenä käytetään AngularJS-kirjastoa.
 Ohjelmointikielenä sekä selain-, että palvelinympäristöissä on Javascript.
 
 Tietokantana toimii herokun tarjoama PostgreSQL. Tietokantaa käsitellään
-suoraan Postgre\-SQL:n laajennetun SQL-kielen avulla. Toteutuksessa tullaan
-hyödyntämään SQL-standardiin kuulumattomia trigger- ja view-mekanismeja, joten
-tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
+suoraan Postgre\-SQL:n laajennetun SQL-kielen avulla. Toteutuksessa
+hyödynnetään SQL-standardiin kuulumattomia trigger- ja view-mekanismeja, joten
+tietokantamoduli on sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
 
 \section{Yleiskuva järjestelmästä}
 
 \subsection{Käyttötapauskaavio}
 
+\begin{center}
 \newcommand{\coldist}{5}
 \begin{tikzpicture}
 \begin{umlsystem}[x=5,fill=yellow!20]{Divvd-järjestelmä}
@@ -90,13 +93,14 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
 \umlassoc{user}{settle}
 \umlassoc{user}{currency}
 \umlinherit{add-ledger}{ledger}
-  \umlinherit{delete-ledger}{ledger}
+\umlinherit{delete-ledger}{ledger}
 \umlinherit{add-transaction}{transaction}
 \umlinherit{delete-transaction}{transaction}
 \umlinherit{edit-transaction}{transaction}
 \umlinclude{ledger}{login}
 \umlinclude{transaction}{add-ledger}
 \end{tikzpicture}
+\end{center}
 
 \subsection{Käyttäjäryhmät}
 
@@ -129,7 +133,8 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
     }
   \item[maksusuunnitelman tulostus]{
       Kirjautunut käyttäjä pyytää järjestelmältä ehdotusta velkojen
-      takaisinmaksujärjestelystä.
+      takaisinmaksujärjestelystä. Tämä ominaisuus on toteuttamatta lopullisessa
+      järjestelmässä.
     }
 \end{description}
 
@@ -137,7 +142,34 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
 
 \subsection{Käsitekaavio}
 
-\includegraphics[scale=1.4]{db}
+Oheiseen kaavioon ei ole merkitty käyttöliittymän tarvitsemia viitteitä
+\texttt{Currency}-tietokohteeseen. Kaikki muut tietokohteet sisältävät
+näitä viitteitä erilaisten aggregaattien näyttämistä varten.
+
+\begin{center}
+\begin{tikzpicture} 
+  \umlemptyclass{User} 
+  \umlemptyclass[y=-3]{Ledger}
+  \umlemptyclass[y=-3,x=4]{Person}
+  \umlemptyclass[y=-6]{Transaction}
+  \umlemptyclass[y=-6,x=4]{Amount}
+  \umlemptyclass[y=-9]{Currency}
+  \umlaggreg[mult1=1..*,mult2=*]{User}{Ledger}
+  \umlunicompo[mult2=*]{Ledger}{Person}
+  \umlunicompo[mult2=*]{Ledger}{Transaction}
+  \umlunicompo[mult2=*]{Transaction}{Amount}
+  \umlunicompo[mult2=1]{Person}{Amount}
+  \umlunicompo[geometry=-|-,mult2=*,arm1=-2cm]{Ledger}{Currency}
+  \umlassoc[geometry=-|,mult1=0..1,mult2=*]{User}{Person}
+  \umlassoc[mult1=*,mult2=*]{Transaction}{Person}
+  \umluniassoc[geometry=|-,mult1=*,mult2=1]{Amount}{Currency}
+\end{tikzpicture}
+\end{center}
+
+Tilitapahtuman ylijäämä jaetaan kaikkien tilitapahtumaan
+liittyvien henkilöiden kesken. \texttt{Transaction}- ja
+\texttt{Person}-tietokohteiden välinen monesta moneen -suhde kuvaa tätä
+relaatiota.
 
 \subsection{Tietokohteet}
 
@@ -145,7 +177,8 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
 \begin{tabular}{ | l | l | l | }
   \hline
   \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
-  Name & Merkkijono & Käyttäjän nimi \\ \hline
+  Username & Merkkijono & Käyttäjän nimi \\ \hline
+  Role & Enumeraatio & Käyttäjän rooli \\ \hline
   Hash & 256-bittinen binäärinen merkkijono &
     Salasanasta laskettu hajautusarvo
     \\ \hline
@@ -180,14 +213,6 @@ tietokantamoduli tulee olemaan sidottu Post\-gre\-SQL-jär\-jes\-tel\-mään.
     rahansiirto vai kulu \\ \hline
 \end{tabular}
 
-\subsubsection{Participant}
-\begin{tabular}{ | l | l | l | }
-  \hline
-  \textbf{Attribuutti} & \textbf{Arvojoukko} & \textbf{Kuvailu} \\ \hline
-  ShareDebt & Totuusarvo & Tosi, jos osapuoli osallistuu
-kattamattomiin kuluihin \\ \hline
-\end{tabular}
-
 \subsubsection{Person}
 \begin{tabular}{ | l | l | l | }
   \hline
@@ -204,16 +229,107 @@ kattamattomiin kuluihin \\ \hline
 
 \section{Relaatiotietokantakaavio}
 
-Jokaisella tietokannan taululla on tyyppiä SERIAL oleva synteettinen
-primäärinen avain nimellä \textit{taulu}\_id. Näitä avaimia ei ole piirretty
-kaavioon.
+Jokaisella tietokannan taululla on synteettinen primäärinen kokonaislukuavain
+nimellä \textit{taulu}\_id. Näitä avaimia ei ole piirretty kaavioon.
 
-\includegraphics[scale=1.35]{schema}
+Kaavion tietokohteiden kuvauksissa keskimmäiseen laatikkoon on nimetty
+kaikki vierasavaimet, jotka ovat aina kokonaislukutyyppisiä. Taulun muut
+sarakkeet tietotyyppeineen on merkitty alimpaan laatikkoon.
+
+Kaavioon ei ole merkitty käyttöliittymässä ja saldojen laskennassa tarvittavia
+viittauksia \texttt{currency}-tauluun. Näiden relaatioiden vierasavaimet on
+merkitty kaavioon kursiivilla.
+
+\begin{center}
+\begin{tikzpicture} 
+  \umlclass[y=-4,x=-6]{user}{ 
+  }{
+    username: text \\
+    role: role \\
+    hash: bytea \\
+    salt: bytea
+  } 
+  \umlclass[y=-4,x=-2]{owner}{
+    user\_id \\
+    ledger\_id \\
+    \umlvirt{currency\_id} \\
+    \umlvirt{\umlvirt{total\_credit\_currency\_id}} \\
+  }{
+  }
+  \umlclass[y=-8,x=-2]{ledger}{
+  }{
+    title: text
+  }
+  \umlclass[y=-8,x=-6]{ledger\_settings}{
+    ledger\_id \\
+    \umlvirt{total\_currency\_id} \\
+  }{
+  }
+  \umlclass[y=-8,x=2]{person}{
+    \umlvirt{currency\_id} \\
+    user\_id \\
+    ledger\_id
+  }{
+    name: text \\
+  }
+  \umlclass[y=-15,x=-2]{transaction}{
+    ledger\_id \\
+    \umlvirt{currency\_id} \\
+  }{
+    description: text \\
+    date: timestamp \\
+    type: text \\
+    location: text \\
+    transfer: boolean \\
+  }
+  \umlclass[y=-15,x=-7]{owner\_transaction\_settings}{
+    owner\_id \\
+    transaction\_id \\
+    \umlvirt{owner\_balance\_currency\_id} \\
+    \umlvirt{total\_value\_currency\_id} \\
+    \umlvirt{owner\_total\_credit\_currency\_id} \\
+  }{
+  }
+  \umlclass[y=-15,x=2]{participant}{
+    \umlvirt{currency\_id} \\
+    transaction\_id \\
+    person\_id \\
+  }{
+  }
+  \umlclass[y=-20,x=-2]{amount}{
+    \umlvirt{currency\_id} \\
+    transaction\_id \\
+    person\_id
+  }{
+    amount: numeric \\
+  }
+  \umlclass[y=-11,x=-6]{currency}{
+    ledger\_id
+  }{
+    code: text \\
+    rate: numeric \\
+  }
+  \umluniassoc{owner}{user}
+  \umluniassoc{owner}{ledger}
+  \umluniassoc{person}{ledger}
+  \umluniassoc[geometry=|-|,weight=1.5]{person}{user}
+  \umluniassoc[mult1=1]{ledger\_settings}{ledger}
+  \umluniassoc[geometry=|-|,anchor1=140,,anchor2=-140,weight=0.8]
+    {owner\_transaction\_settings}{owner}
+  \umluniassoc{owner\_transaction\_settings}{transaction}
+  \umluniassoc{transaction}{ledger}
+  \umluniassoc{participant}{transaction}
+  \umluniassoc{participant}{person}
+  \umluniassoc{amount}{transaction}
+  \umluniassoc[geometry=-|-,weight=1.5]{amount}{person}
+  \umluniassoc[geometry=-|,anchor2=-120]{currency}{ledger}
+\end{tikzpicture}
+\end{center}
 
 \section{Järjestelmän yleisrakenne}
 
 Projektin palvelinosio noudattaa MVC-arkkitehtuuria. Koska palvelin tarjoaa
-vain JSON-rajapinnan, toimii "view"-komponentti pelkästään alla olevassa
+vain JSON-rajapinnan, toimii "view"-komponentti automaattisesti alla olevassa
 sovelluskehyksessä, eikä lähdekoodihakemistopuussa ole "view"-kansiota.
 Sovelluskehyksen tietokantakomponentti muuntaa tietokannasta saadut vastaukset
 javascript-olioiksi, jotka muunnetaan edelleen automaattisesti
@@ -233,7 +349,7 @@ HTTP-vastauksissa oleviksi merkkijonoiksi.
       \LaTeX-muotoinen dokumentaatio.
     }
   \item[/local]{
-      Paikallisessa sovelluskehityksessä tarvittavat javascript-apuohjelmat.
+      Paikallisessa sovelluskehityksessä tarvittavat apuohjelmat.
     }
   \item[/test]{
       Testitiedostot.
@@ -249,10 +365,13 @@ HTTP-vastauksissa oleviksi merkkijonoiksi.
     }
   \item[/app/lib]{
       Palvelimen apukirjastot. Sisältää esimerkiksi autentikointiin ja
-      tietokantayhteyteen liittyvät funktiot.
+      tietokantayhteyteen liittyvät moduulit.
     }
   \item[/app/models]{
-      Palvelimen domain-oliot ja niiden persistointi tietokantaan.
+      Palvelimen domain-oliot.
+    }
+  \item[/app/dao]{
+      Domain-olioiden persistointi tietokantaan.
     }
   \item[/app/public]{
       Palvelimelta saatavat staattiset tiedostot, selaimessa ajettava
@@ -279,20 +398,70 @@ HTTP-vastauksissa oleviksi merkkijonoiksi.
   \item[/app/public/nonsecure/js]{
       Asiakassovelluksen javascript-koodi.
     }
+  \item[/app/public/nonsecure/js/controllers]{
+      Asiakassovelluksen kontrollerit.
+    }
+  \item[/app/public/nonsecure/js/services]{
+      Asiakassovelluksen palvelumoduulit.
+    }
 \end{description}
 
 \section{Käyttöliittymä ja järjestelmän komponentit}
 
 Web-käyttöliittymä toteutetaan "single page"-applikaationa, jossa selaimen
-lataama javascript-käyttöliittymä keskustelee palvelimen JSON-rajapinnan
-kanssa ja päivittää selaimen osoitekenttää kulloinkin näytettävää resurssia
-vastaavaksi. Arkkitehtuurin ansiosta yksittäinen käyttöliittymänäkymä voi
-päivittää tietokantaa osissa ilman, että näkymää tarvitsee ladata palvelimelta
-uudelleen.
+lataama javascript-käyttöliittymä keskustelee palvelimen tarjoaman
+JSON-rajapinnan kanssa ja päivittää selaimen osoitekenttää kulloinkin
+näytettävää resurssia vastaavaksi. Arkkitehtuurin ansiosta yksittäinen
+käyttöliittymänäkymä voi päivittää tietokantaa osissa ilman, että näkymää
+tarvitsee ladata palvelimelta kokonaan uudelleen.
 
 \subsection{Käyttöliittymäkaavio}
 
-\includegraphics[scale=1.5]{ui}
+\begin{tikzpicture} 
+\begin{umlstate}[name=guest]{Vierailija} 
+\umlbasicstate[name=front]{/}
+\umlbasicstate[name=login,x=3]{/login}
+\umlbasicstate[name=signup,x=6]{/signup}
+\umltrans{front}{login} 
+\umltrans{login}{front} 
+\umltrans{signup}{login} 
+\umltrans{login}{signup} 
+\umltrans[geometry=|-|,arm1=-1.5cm]{front}{signup}
+\umltrans[geometry=|-|,arm2=-1.5cm]{signup}{front}
+\end{umlstate} 
+
+\begin{umlstate}[y=-6,name=member]{Kirjautunut käyttäjä} 
+\umlbasicstate[name=ledgers,y=0,x=1]{/,/ledgers}
+\umlbasicstate[name=ledger,y=-3,x=1]{/ledgers/:ledger\_id}
+\umlbasicstate[name=summary,y=0,x=8]{/ledgers/:ledger\_id/summary}
+\umlbasicstate[name=currencies,y=-3,x=8]{/ledgers/:ledger\_id/currencies}
+\umlbasicstate[name=persons,y=-6,x=8]{/ledgers/:ledger\_id/persons}
+\umlbasicstate[name=transaction,y=-9,x=2]
+  {/ledgers/:ledger\_id/transactions/:transactions\_id}
+\umltrans[geometry=-|-,anchor1=10,anchor2=0,arm2=0.23cm]{transaction}{persons}
+\umltrans[geometry=-|-,anchor1=0,anchor2=0,arm2=0.4cm]{transaction}{currencies}
+\umltrans[geometry=-|-,anchor1=-10,anchor2=0,arm2=0.8cm]{transaction}{summary}
+\end{umlstate}
+
+\umltrans[geometry=|-|,anchor1=-130,anchor2=130]{front}{ledgers}
+\umltrans[geometry=|-|,anchor1=130,anchor2=-130]{ledgers}{front}
+\umltrans[geometry=|-|,weight=0.4]{login}{ledgers}
+\umltrans[geometry=|-|,anchor1=-50,anchor2=50]{signup}{ledgers}
+\umltrans{ledgers}{ledger}
+\umltrans{ledger}{ledgers}
+\umltrans[geometry=|-|]{ledger}{transaction}
+\umltrans[geometry=|-|]{transaction}{ledger}
+\umltrans[geometry=|-,anchor1=163,anchor2=180]{transaction}{ledgers}
+\umltrans{ledgers}{summary}
+\umltrans{summary}{ledgers}
+\umltrans[geometry=-|-,anchor1=-20,anchor2=165]{ledgers}{currencies}
+\umltrans[geometry=-|-,anchor2=-20,anchor1=165]{currencies}{ledgers}
+\umltrans[geometry=-|-,anchor1=-30,anchor2=165,weight=0.4]{ledgers}{persons}
+\umltrans[geometry=-|-,anchor2=-30,anchor1=165,weight=0.6]{persons}{ledgers}
+\umltrans[geometry=-|-,anchor1=10,anchor2=-165,weight=0.45]{ledger}{summary}
+\umltrans{ledger}{currencies}
+\umltrans[geometry=-|-,anchor1=-10,weight=0.3]{ledger}{persons}
+\end{tikzpicture}
 
 \subsection{Näkymät}
 
@@ -307,7 +476,7 @@ uudelleen.
       jälkeen käyttäjä ohjataan kirjautuneena etusivulle.
     }
   \item[/signup]{
-      Rekistereöitymissivu. Onnistuneen rekisteröinnin jälkeen käyttäjä ohjataan
+      Rekisteröitymissivu. Onnistuneen rekisteröinnin jälkeen käyttäjä ohjataan
       kirjautuneena etusivulle.
     }
   \item[/ledgers]{
@@ -315,23 +484,27 @@ uudelleen.
       Listaussivun kautta tilikirjoja voi lisätä tai poistaa. Sivulta voi myös
       siirtyä tarkastelemaan yksittäisen tilikirjan tilitapahtumia.
     }
-  \item[/ledgers/:ledgerId]{
+  \item[/ledgers/:ledger\_id]{
       Tilikirjan tilitapahtumien listaussivu näyttää kaikki tilikirjaan
       liittyvät tilitapahtumat. Sivu voidaan näyttää vain, jos kirjautunut
       käyttää omistaa tilikirjan. Sivun avulla tilitapahtumia voi lisätä ja
       poistaa. Sivun kautta pääsee myös muokkaamaan yksittäistä tilitapahtumaa.
     }
-  \item[/ledgers/:ledgerId/summary]{
+  \item[/ledgers/:ledger\_id/summary]{
       Tilikirjan yhteenveto listaa kaikkien tilikirjaan liittyvien osapuolten
       kokonaissaldot sekä järjestelmän automaattisesti tuottaman
       velanmaksusuunnitelman, jonka voi halutessaan siirtää tilitapahtumaksi,
       jolloin tilikirjan saldot tasapainottuvat.
     }
-  \item[/ledgers/:ledgerId/currencies]{
+  \item[/ledgers/:ledger\_id/currencies]{
       Valuuttojen muokkaussivu näyttää tilikirjaan liittyvät valuutat
       kursseineen.  Sivun avulla valuuttoja voi lisätä, poistaa ja muokata.
     }
-  \item[/ledgers/:ledgersId/:transactionId]{
+  \item[/ledgers/:ledger\_id/persons]{
+      Henkilösivu näyttää tilikirjaan osallistuvat henkilöt. Sivun avulla
+      henkilöitä voi lisätä, poistaa ja muokata.
+    }
+  \item[/ledgers/:ledgers\_id/transactions/:transaction\_id]{
       Tilitapahtumasivulla tilitapahtumaa voi muokata. Tilitapahtumaan voi
       lisätä osapuolten tekemiä maksuja ja velkasitoumuksia.
     }
@@ -383,7 +556,7 @@ voi keskeyttää näppäinkomennolla Ctrl-C.
 
 Sovellus on suunniteltu Heroku-alustalle. Tuotantoversion asentaminen
 vaatii heroku toolbelt -ohjelmiston. Tietokannan yhteystiedot ja salasana
-on tallennettu heroku-tilille ympäristömuuttujana, eikä ole siis näkyvillä
+on tallennettu heroku-tilille ympäristömuuttujina, eivätkä siis ole näkyvillä
 missään paikallisesti.
 
 Tuotantoversion voi päivittää työntämällä app-hakemistoon alustetun
@@ -397,8 +570,62 @@ make heroku-init-data
 \section{Käynnistys- / käyttöohje}
 Sovellus on asennettu osoitteeseen \url{https://divvd.herokuapp.com/}.
 Sovellukseen voi rekisteröidä uuden käyttäjätunnuksen tai kirjautua
-testitunnuksilla test/test. Toistaiseksi myös debug/debug sekä admin/debug
--tunnukset ovat käytössä.
+testitunnuksilla test/test.
+
+\section{Testaus, tunnetut bugit ja puutteet sekä jatkokehitysideat}
+
+Hakemisto \texttt{test} sisältää testit käyttäjähallintaan liittyville
+JSON-rajapintaosoitteille. Näiden testien lisäksi projektia ei muuten
+ole testattu.
+
+Tietokanta on mahdollista saada epäkonsistenttiin tilaan JSON-rajapinnan
+kautta esimerkiksi tuhoamalla käytössä olevia valuuttoja. Tällaisia tilanteita
+ei ole testattu millään tavalla. Epäloogista tilaa ei kuitenkaan pitäisi olla
+mahdollista saavuttaa web-käyttöliittymän kautta.
+
+Asiakassovellus ei huomaa, jos asiakkaan sessio jostain syystä häviää
+palvelimelta. Virhetilasta selviää lataamalla sivun uudestaan selaimen
+refresh-toiminnolla.
+
+\subsection{Jatkokehitysideat}
+
+\begin{itemize}
+  \item Rajapinnan testaus ja bugien korjaus
+  \item Rajapinnan versiointi
+  \item Kirjautuminen HTTP-otsakkeessa olevalla käyttäjäkohtaisella avaimella
+  \item Sessioavainten tallentaminen esimerkiksi Redis-tietokantaan
+  \item Offline-käyttö esimerkiksi WebSQL:n avulla sekä automaattinen
+    synkronointi palvelimelle
+  \item Käyttöliittymät mobiilialustoille esimerkiksi Android- tai iOS-
+    applikaatioina
+  \item Intuitiivisempi ja virtaviivaisempi web-käyttöliittymä
+  \item Uutta analytiikkaa käyttäjälle tilikirjoista kaavioiden ja karttojen
+    avulla
+  \item Rajatut palvelut rekisteröitymättömälle käyttäjälle
+  \item OpenAuth-tunnistautuminen
+  \item Velkojen takaisinmaksusuunnitelman laskenta.
+\end{itemize}
+
+\section{Omat kokemukset}
+
+Harjoitustyö oli varsin laaja ja toteutus vei paljon aikaa. Kurssin laajuus
+ei välttämättä ole kovin perusteltu, jos tarkoituksena on opetella nimenomaan
+tietokantaohjelmointia. Web-ohjelmoinnin ja käyttöliittymän rakentaminen
+saattaa viedä enemmän aikaa kuin varsinainen tietokantaohjelmointi.
+Web-ohjelmoinnin näkökulmasta ORM-kirjastojen käyttökielto on varsin
+ristiriitainen: mitään web-sovellusta tuskin rakennetaan nykyään ilman
+ORM-komponenttia.
+
+Itse opin paljon uutta HTTP-protokollasta, REST-rajapintojen tekemisestä,
+autentikoinnista ja angular-sovelluskehyksestä, mutta myös PostgreSQL-
+tietokannasta, triggereistä, transaktioista ja näkymistä. Mielenkiintoista
+olisi vielä nähdä, miten suunnittelemani tietokanta skaalautuu suurella
+datamäärällä.
+
+\section{Muu dokumentaatio}
+
+Tietokantaskeeman alustuslistaus on nähtävillä tiedostossa
+\texttt{db/init-schema.sql}.
 
 \section{JSON-rajapinta}
 
@@ -408,7 +635,7 @@ alustoille on yksinkertaista. JSON-rajapinta on julkinen, joten myös kolmannet
 osapuolet voivat halutessaan hyödyntää sitä.
 
 Rajapinnan suunnittelussa on käytetty apuna Kippt-palvelun API-dokumentaatiota,
-joka on saatavilla osoitteesta
+joka on nähtävillä osoitteessa
 \url{https://github.com/kippt/api-documentation/}.
 
 \subsection{Formaatti}
@@ -420,15 +647,15 @@ ainoastaan JSON-muodossa. POST-palvelupyyntöihin on liitettävä
 \subsection{Tunnistautuminen}
 
 Rajapinta vaatii tunnistautumista joko HTTP Basic -autentikoinnin tai
-selainevästeiden avulla.  Selaimen uloskirjautumisen mahdollistamiseksi
+selainevästeiden avulla. Selaimen uloskirjautumisen mahdollistamiseksi
 kirjautumiseen liittyvät osoitteet /api/login, /api/logout, /api/signup ja
 /api/account eivät hyväksy HTTP Basic -autentikointia. Kaikki palveluosoitteet
 lähettävät vain salatun yhteyden yli lähetettävän HttpOnly-sessioevästeen,
 jonka avulla käyttäjän kirjautumisen tilaa seurataan.
 
 Rajapinta vastaa tunnistautumattomaan pyyntöön statuskoodilla \texttt{401
-Unauthorized}.  Vastauksen WWW-Authenticate -otsakkeen voi halutessaan muuttaa
-Custom-tyyppiseksi liittämällä palvelupyyntöön GET-parametri auth=hidden.  Näin
+Unauthorized}. Vastauksen WWW-Authenticate -otsakkeen voi halutessaan muuttaa
+Custom-tyyppiseksi liittämällä palvelupyyntöön GET-parametri auth=hidden. Näin
 voidaan estää selaimen automaattisesti näyttämä kirjautumisikkuna.
 
 Kirjautumista vaativat palveluosoitteet palauttavat \texttt{401}-virheviestin
@@ -447,422 +674,14 @@ Bad request}, jos syötteessä tai sovelluksen tilassa on virhe. Virheellisiin
 palveluosoitteisiin vastataan statuskoodilla \texttt{404 Not found}. Useimpiin
 osoitevirheisiin vastataan kuitenkin lähettämällä asiakkaalle
 sovellusapplikaation etusivu. Tämä on välttämätöntä single-page
--arkkitehtuurissa asiakkaan reitityksen toimivuuden takia. Tunnistamattomaan
-osoitteeseen lähetettyihin ei GET-tyyppisiin pyyntöihin vastataan
-statuskoodilla \texttt{405 Not allowed}.
+-arkkitehtuurissa asiakkaan reitityksen toimivuuden takia. Muihin kuin
+GET-tyyppisiin pyyntöihin, jotka on lähetetty tunnistamattomaan osoitteeseen
+vastataan statuskoodilla \texttt{405 Not allowed}.
 
 Palvelimen sisäiseen virhetilanteeseen vastataan statuskoodilla \texttt{500
 Internal server error}. Sisäisen virhevastauksen mukana tulevan viestin sisältö
 on aina "server error", jottei palvelun toteutuksen yksityiskohdista anneta
 tietoja käyttäjälle.
-
-Kaikkien virheviestien runkona on seuraava JSON-olio:
-\begin{Verbatim}
-{
-  message:text
-}
-\end{Verbatim}
-
-\subsection{Palveluosoitteet}
-
-\subsubsection{POST /api/login}
-Kirjaa käyttäjän sisään.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  username:text
-  password:text
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-{
-  username:text
-  role:text
-  user_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{POST /api/signup}
-Rekisteröi käyttäjän.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  username:text
-  password:text
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-{
-  username:text
-  role:text
-  user_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{GET /api/account}
-Palauttaa kirjautuneen käyttäjän tiedot.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-{
-  username:text
-  role:text
-  user_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{DELETE /api/account}
-Kirjaa ulos ja poistaa käyttäjän tietokannasta.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-{
-  username:text
-  role:text
-}
-\end{Verbatim}
-
-\subsubsection{GET /api/logout}
-Kirjaa ulos käyttäjän.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-{
-  username:text
-  role:text
-  user_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{GET /api/users}
-Palauttaa listan käyttäjistä. Vaatii pääkäyttäjän roolin.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-[ User ]
-\end{Verbatim}
-
-\subsubsection{GET /api/users/:userName}
-Palauttaa käyttäjän.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-User
-\end{Verbatim}
-
-\subsubsection{DELETE /api/users/:userName}
-Poistaa käyttäjän. Palauttaa poistetun käyttäjän ilman tunnistetta.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-{
-  username:text
-  role:text
-}
-\end{Verbatim}
-
-\subsubsection{GET /api/users/:userName/ledgers}
-Listaa kaikki käyttäjän tilikirjat.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-[ Ledger ]
-\end{Verbatim}
-
-\subsubsection{POST /api/ledgers}
-Lisää uuden tilikirjan. Tunnistautunut käyttäjä lisätään automaattisesti
-omistajiin. Kaikki parametrit ovat valinnaisia.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  title:text
-  currency_id:integer // valuutta, jossa kokonaisarvot näytetään
-  owners: [User]
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Ledger
-\end{Verbatim}
-
-\subsubsection{GET /api/ledgers/:ledgerId}
-
-Palauttaa tilikirjan.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Ledger
-\end{Verbatim}
-
-\subsubsection{PUT /api/ledgers/:ledgerId}
-
-Muokkaa tilikirjaa. Lista-tyyppisiä kenttiä ei voi muokata tämän
-palveluosoitteen kautta.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-Ledger
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Ledger
-\end{Verbatim}
-
-\subsubsection{DELETE /api/ledgers/:ledgerId}
-
-Poistaa tilikirjan.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Ledger
-\end{Verbatim}
-
-\subsubsection{POST /api/ledgers/:ledgerId/currencies}
-
-Lisää valuutan tilikirjaan.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  code:text
-  rate:numeric
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Currency
-\end{Verbatim}
-
-\subsubsection{GET /api/ledgers/:ledgerId/transactions}
-
-Listaa tilikirjan tilitapahtumat.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-[Transaction]
-\end{Verbatim}
-
-\subsubsection{POST /api/ledgers/:ledgerId/transactions}
-
-Lisää tilitapahtuman tilikirjaan. Kaikki parametrit ovat valinnaisia.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  description:text
-  date:timestamp
-  type:text
-  location:text
-  transfer:boolean
-  currency_id:integer // Valuutta, jossa tilitapahtuman kokonaisarvo näytetään.
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Transaction
-\end{Verbatim}
-
-\subsubsection{POST /api/ledgers/:ledgerId/persons}
-
-Lisää tilikirjaan henkilön.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  name:text
-  currency_id:integer // Valuutta, jossa henkilön kokonaissaldo näytetään.
-  user_id:integer
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Person
-\end{Verbatim}
-
-\subsubsection{GET /api/transactions/:transactionId}
-
-Palauttaa tilitapahtuman.
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Transaction
-\end{Verbatim}
-
-\subsubsection{PUT /api/transactions/:transactionId}
-
-Muokkaa tilitapahtumaa. Lista-tyyppisiä kenttiä ei voi muokata tämän
-paluuosoitteen kautta.
-
-\begin{Verbatim}
-{
-  description:text
-  date:timestamp
-  type:text
-  location:text
-  transfer:boolean
-  currency_id:integer // tilitapahtuman kokonaisarvo presentaatio
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Transaction
-\end{Verbatim}
-
-\subsubsection{DELETE /api/transactions/:transactionId}
-
-Poistaa tilitapahtuman
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Transaction
-\end{Verbatim}
-
-\subsubsection{POST /api/transactions/:transactionId/participant}
-
-Lisää tilitapahtumaan osapuolen. Osapuolen on oltava osallisena tilikirjassa,
-johon tilitapahtuma kuuluu.
-
-\textbf{Parametrit}
-\begin{Verbatim}
-{
-  share_debt:boolean
-  credit_currency_id:integer
-  debit_currency_id:integer
-  shared_debt_currency_id:integer
-  person_id:integer
-}
-\end{Verbatim}
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Participant
-\end{Verbatim}
-
-\subsubsection{GET /api/participants/:participantId}
-
-Palauttaa osapuolen
-
-\textbf{Palautusarvo}
-200 OK
-\begin{Verbatim}
-Transaction
-\end{Verbatim}
-
-\subsubsection{GET /api/currencies/:currencyId}
-
-\subsubsection{PUT /api/currencies/:currencyId}
-
-\subsubsection{DELETE /api/currencies/:currencyId}
-
-\subsection{Tyypit}
-
-\subsubsection{User}
-\begin{Verbatim}
-{
-  username:text
-  role:text
-  user_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{Ledger}
-\begin{Verbatim}
-{
-  title:text
-  currency_id:integer // valuutta, jossa kokonaisarvot näytetään
-  user_id:integer
-  currencies: [Currency]
-  persons: [Person]
-  owners: [User]
-}
-\end{Verbatim}
-
-\subsubsection{Transaction}
-\begin{Verbatim}
-{
-  description:text
-  date:timestamp
-  type:text
-  location:text
-  transfer:boolean
-  currency_id:integer // tilitapahtuman kokonaisarvo presentaatio
-  participants: [Participant]
-}
-\end{Verbatim}
-
-\subsubsection{Person}
-\begin{Verbatim}
-{
-  name:text
-  currency_id:integer
-  user_id:integer
-  person_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{Currency}
-\begin{Verbatim}
-{
-  code:text
-  rate:numeric
-  currency_id:integer
-}
-\end{Verbatim}
-
-\subsubsection{Participant}
-\begin{Verbatim}
-{
-  share_debt:boolean
-  credit_currency_id:integer
-  debit_currency_id:integer
-  shared_debt_currency_id:integer
-  person_id:integer
-  amounts: [Amount]
-}
-\end{Verbatim}
-
-\subsubsection{Amount}
-\begin{Verbatim}
-{
-  amount:number
-  currency_id:integer
-  amount_id:integer
-}
-\end{Verbatim}
 
 \bibliographystyle{plainnat}
 \bibliography{dokumentaatio}
