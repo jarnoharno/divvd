@@ -29,7 +29,8 @@ NODE_TEST := $(NODE_TEST_DIR)/init
 
 # build everything required for running local server and development scripts
 
-all: $(NODE_SERVER) $(NODE_LOCAL) $(INIT_DB) $(PEM)
+ALL := $(NODE_SERVER) $(NODE_LOCAL) $(INIT_DB) $(PEM)
+all: $(ALL)
 
 # documentation targets
 
@@ -195,12 +196,12 @@ define start-local
 	fi;
 endef
 
-debug: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER)
+debug: $(ALL)
 	$(call start-local,,\
 		(cd app && node-debug app.js);\
 	)
 
-run: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER)
+run: $(ALL)
 	$(call start-local,,\
 		node app/app.js;\
 	)
@@ -208,7 +209,7 @@ run: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER)
 # test
 
 .PHONY: test
-test: $(BUILD_DB_PREFIX)init-schema $(PEM) $(NODE_SERVER) $(NODE_TEST)
+test: $(ALL) $(NODE_TEST)
 	$(call start-local,> /dev/null,\
 		(node app/app.js > /dev/null &);\
 		while ! curl -k -s $(LOCALURL)/api/account > /dev/null; do sleep 0.5; done;\
