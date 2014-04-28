@@ -105,7 +105,9 @@
           </td>
           <td>
             <div class="dropdown">
-              <span e-class="input-sm table-input" editable-text="amount.amount"
+              <span e-class="input-sm table-input"
+                editable-number="amount.amount"
+                e-step=0.01
                 ng-bind="amount.amount"
                 onbeforesave="setAmount(amount, $data)" buttons="no"></span>
               <a href class="dropdown-toggle">

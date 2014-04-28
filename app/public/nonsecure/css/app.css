@@ -40,6 +40,9 @@ body {
   font-size: 14px;
   line-height: 24px;
 }
+input[type="number"].input-sm.table-input {
+  padding-top: 0px;
+}
 
 .tr-total {
   font-weight: bold;
