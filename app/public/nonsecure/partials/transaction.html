@@ -126,12 +126,12 @@
     </table>
   </div>
 
-  <div class="divvd-header" style="margin-top:10px">
+  <div class="divvd-header" style="margin-top:10px" ng-show="transaction">
     <h2 class="sub-header pull-left">
 			Shared debt
 		</h2>
     <div class="dropdown pull-right">
-      <button type="button"
+      <button type="button" ng-disabled="addParticipantDisabled"
         class="btn btn-success dropdown-toggle">
         Add participant
       </button>
@@ -155,7 +155,8 @@
         <tr ng-repeat="participant in transaction.participants">
           <td>
             <button type="button" class="btn btn-primary btn-danger btn-xs"
-							ng-click="deleteParticipant(participant)">
+							ng-click="deleteParticipant(participant)"
+              ng-disabled="singleParticipant()">
               <i class="fa fa-trash-o fa-fw"></i> Remove
             </button>
           </td>

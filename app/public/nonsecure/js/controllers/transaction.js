@@ -133,6 +133,7 @@ app.controller('Transaction',
   };
 
   $scope.user = auth.data.user;
+  $scope.addParticipantDisabled = true;
 
   function updateView() {
     var l = $scope.ledger;
@@ -151,6 +152,8 @@ app.controller('Transaction',
         p.person = l.personMap(p.person_id);
         p.currency = l.currencyMap(p.currency_id);
       });
+      $scope.addParticipantDisabled = 
+        t.participants.length === l.persons.length;
       $scope.transaction = t;
     });
   }
@@ -350,5 +353,8 @@ app.controller('Transaction',
       total_credit_currency_id: c.currency_id
     }).$promise.
     then(updateView);
+  };
+  $scope.singleParticipant = function() {
+    return $scope.transaction.participants.length === 1;
   };
 }]);
