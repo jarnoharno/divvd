@@ -162,19 +162,21 @@
           <td>
             {{participant.person.name}}
           </td>
-          <td class="dropdown">
-						{{participant.shared_debt}}
-            <a href class="dropdown-toggle">
-							{{participant.currency.code}}
-							<span class="caret"></span>
-						</a>
-            <ul class="dropdown-menu">
-              <li ng-repeat="currency in ledger.currencies">
-								<a ng-bind="currency.code"
-									ng-click="setParticipantCurrency(participant, currency)">
-								</a>
-							</li>
-            </ul>
+          <td>
+            <div class="dropdown">
+              {{participant.shared_debt}}
+              <a href class="dropdown-toggle">
+                {{participant.currency.code}}
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                <li ng-repeat="currency in ledger.currencies">
+                  <a ng-bind="currency.code"
+                    ng-click="setParticipantCurrency(participant, currency)">
+                  </a>
+                </li>
+              </ul>
+            </div>
           </td>
         </tr>
       </tbody>
