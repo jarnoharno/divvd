@@ -19,7 +19,7 @@ common.parse_basic_auth = function(req) {
 
 common.require_auth = function(req, res, next) {
   // used in 401 error reporting in lib/hox.js
-  res.basic_auth = req.params.auth === 'basic';
+  res.basic_auth = req.query.auth === 'basic';
   if (req.session.user) {
     next();
     return;

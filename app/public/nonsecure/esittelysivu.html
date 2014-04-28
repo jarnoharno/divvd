@@ -19,16 +19,16 @@
       <li><a href="/doc/dokumentaatio.pdf">Työn dokumentaatio</a></li>
       <li><a href="https://divvd.herokuapp.com/">Web application</a></li>
     </ul>
-    <p>Kirjautumiseen voi käyttää tunnuksia debug/debug, jolla on
-    katseluoikeus kaikkiin palveluosoitteisiin. Käyttöliittymän demosivut ovat
-    näkyvillä kirjautumisen jälkeen.
+    <p>Testikäyttäjän tunnus on test/test.
+    APIn testaamiseen voi käyttää tunnusta debug/debug, jolla on
+    katseluoikeus kaikkiin palveluosoitteisiin.
     <p>Projektissa ei ole varsinaista "view"-komponenttia, sillä palvelin
     tarjoaa pelkän JSON-rajapinnan. Alla oleva tietokantakomponentti muuntaa
     tietokannan vastaukset suoraan JSON-dataksi.
     <ul>
       <li><a href="http://jaleppan.users.cs.helsinki.fi/ConnectionTest">Connectiontest-ohjelma</a></li>
-      <li><a href="/">HTML-demosivut</a></div>
-      <li><a href="/api/users">API test</a></li>
+      <li><a href="/">HTML-sivut</a></div>
+      <li><a href="/api/users?auth=basic">API test</a></li>
     </ul>
 
     <h2>Työn aihe</h2>
@@ -38,7 +38,7 @@
     hankalaksi tehtävä osoittautuu, jos jaettavissa kustannuksissa on käytetty
     useita eri valuuttoja. Ulkomailla matkaillessa syntyy helposti tilanteita,
     joissa esimerkiksi matkaliput ja majoitukset on maksettu kotimaan
-    valuutassaa, mutta juoksevat kulut hoidetaan kohdemaan valuutassa. Miten
+    valuutassa, mutta juoksevat kulut hoidetaan kohdemaan valuutassa. Miten
     kustannukset tulisi tällöin jakaa?
 
     <p>Työssä toteutetaan kustannusten jakoon tarkoitettu
