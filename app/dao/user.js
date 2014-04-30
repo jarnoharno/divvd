@@ -1,10 +1,11 @@
-var User = require('../models/user');
-var crypt = require('../lib/qcrypt');
-var Hox = require('../lib/hox');
-var util = require('./util');
-var shitorm = require('../lib/shitorm');
+var User        = require('../models/user');
+var crypt       = require('../lib/qcrypt');
+var Hox         = require('../lib/hox');
+var util        = require('./util');
+var shitorm     = require('../lib/shitorm');
 var buffertools = require('buffertools');
-var dada = require('../lib/dada');
+var dada        = require('../lib/dada');
+var qdb         = require('../lib/qdb');
 
 var dao = module.exports = {};
 
@@ -27,6 +28,7 @@ function not_found() {
 }
 
 dao.find_username_and_password = function(body, db) {
+  db = db || qdb;
   return db.query(
       'select username, role, user_id, hash, salt from "user" ' +
       'where username = $1;',
